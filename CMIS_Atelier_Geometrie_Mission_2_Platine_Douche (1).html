@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f6fc">
+<title>Mission 2 — Platine de douche | Atelier de géométrie · CMIS</title>
+<style>
+:root{--blue:#1769db;--blue-dark:#1055bd;--ink:#193954;--muted:#71859b;--line:#d9e5f3;--blue-pale:#eaf3ff;--surface:#fff;--bg:#f1f5fb;--focus:#e3f0ff;--shadow:0 12px 38px rgba(34,66,109,.09)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+button,input{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #84b5fd;outline-offset:2px}
+button:disabled{opacity:.38;cursor:default}
+.app{height:100dvh;min-height:585px;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:68px;flex-shrink:0;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 23px;z-index:10}
+.identity{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--blue);color:white;display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 10px #1769db25}
+.logo svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
+.title h1{font-size:18px;line-height:1.1;margin:0 0 5px;font-weight:800;letter-spacing:-.45px}
+.title p{font-size:12px;color:var(--muted);margin:0}
+.header-tools{display:flex;align-items:center;gap:7px}
+.topbtn{height:38px;border:1px solid #dce6f2;background:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;color:#344f6e;font-size:13px;font-weight:700;white-space:nowrap;transition:background .18s,border .18s}
+.topbtn:hover:not(:disabled){background:#eef5ff;border-color:#c4d7ef}
+.topbtn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.topbtn.icononly{padding:0;width:38px}
+.topbtn.blue{background:var(--blue);border-color:var(--blue);color:white}
+.topbtn.blue:hover{background:var(--blue-dark)}
+.divisor{height:22px;width:1px;background:var(--line);margin:0 4px}
+.layout{display:grid;grid-template-columns:104px minmax(0,1fr) 275px;gap:17px;flex:1;min-height:0;padding:17px}
+.toolrail{background:#fff;border:1px solid var(--line);box-shadow:0 2px 16px #17375e05;border-radius:16px;padding:12px 8px;display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow:auto;scrollbar-width:thin}
+.rail-label{font-size:10px;color:#8da0b5;font-weight:800;text-align:center;letter-spacing:1.05px;padding:1px 0 8px}
+.tool{min-height:68px;background:transparent;border:1px solid transparent;color:#526b89;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;transition:background .18s, border .18s,color .18s}
+.tool:hover{background:#f2f7ff}
+.tool.active{background:#eaf3ff;border-color:#c5dbfa;color:var(--blue)}
+.tool svg{height:24px;width:24px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tool span{font-size:11px;font-weight:750}
+.workarea{min-width:0;display:flex;flex-direction:column;gap:11px;min-height:0}
+.workspace-head{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.worktitle{display:flex;align-items:center;gap:9px;min-width:0}
+.worktitle strong{font-size:14px;white-space:nowrap}
+.pill{background:#fff;border:1px solid var(--line);border-radius:30px;font-size:11px;font-weight:750;color:#607b9a;padding:6px 10px;white-space:nowrap}
+.chips{display:flex;gap:9px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.switch{display:flex;align-items:center;gap:7px;font-size:12px;color:#526f8f;font-weight:650;cursor:pointer;white-space:nowrap;user-select:none}
+.switch input{appearance:none;-webkit-appearance:none;width:29px;height:17px;background:#cfdbe9;border-radius:20px;position:relative;margin:0;transition:background .18s;cursor:pointer;flex-shrink:0}
+.switch input:after{content:"";position:absolute;width:11px;height:11px;top:3px;left:3px;border-radius:100%;background:#fff;transition:transform .18s}
+.switch input:checked{background:var(--blue)}
+.switch input:checked:after{transform:translateX(12px)}
+.paper-enclosure{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px;border-radius:15px;border:1px solid var(--line);background:repeating-linear-gradient(135deg,#eaf0f8 0,#eaf0f8 10px,#edf3fb 10px,#edf3fb 20px);overflow:auto}
+.paper{width:min(100%,calc((100dvh - 245px)*1.4142857));max-height:100%;aspect-ratio:297/210;background:#fff;box-shadow:0 12px 40px #173e6c23,0 2px 5px #16395713;outline:1px solid #cad7e5;position:relative;flex-shrink:0;touch-action:none}
+.paper svg{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none}
+.paper svg.tool-eraser{cursor:cell}.paper svg.tool-select{cursor:grab}.paper svg.tool-select.dragging{cursor:grabbing}
+.paper:fullscreen{width:100vw;max-height:100vh;height:auto;aspect-ratio:297/210;margin:auto;background:#fff}
+.paper:fullscreen svg{height:100%}
+.paper-enclosure:fullscreen{border:0;border-radius:0;background:#eaf0f8;padding:20px}
+.paper-enclosure:fullscreen .paper{width:min(calc(100vw - 40px),calc((100vh - 40px)*1.4142857));max-height:calc(100vh - 40px)}
+#sheet .canvas-tool-guide{pointer-events:none}
+.status{height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-radius:10px;border:1px solid var(--line);padding:0 13px}
+.statusmessage{min-width:0;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650;color:#4b6888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.statusmark{width:7px;height:7px;background:#1769db;border-radius:100%;flex-shrink:0}
+.coordinates{font-size:11px;font-weight:700;color:#8b9fb5;white-space:nowrap;font-variant-numeric:tabular-nums}
+.inspector{min-height:0;background:#fff;border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin;padding:18px}
+.inspector-kicker{font-size:10px;letter-spacing:1.1px;font-weight:850;color:#899fb7;margin-bottom:13px}
+.inspector-head{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.inspector-icon{width:40px;height:40px;background:var(--blue-pale);border-radius:10px;display:grid;place-items:center;color:var(--blue)}
+.inspector-icon svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.inspector-head h2{margin:0;font-size:19px;letter-spacing:-.5px}
+.tool-desc{font-size:13px;color:#5b7694;line-height:1.6;margin:0 0 16px}
+.optiontitle{font-size:11px;color:#8a9fb6;text-transform:uppercase;letter-spacing:.6px;font-weight:850;margin:17px 0 9px}
+.divider{height:1px;background:var(--line);margin:5px 0 0}
+.segmented{display:flex;border:1px solid #d7e5f4;padding:3px;border-radius:10px;gap:3px;background:#f8fbff}
+.seg{flex:1;border:0;border-radius:7px;background:transparent;padding:8px 4px;font-size:12px;font-weight:750;color:#6b819a}
+.seg.active{background:var(--blue);color:white}
+.colors{display:flex;gap:12px;align-items:center;margin:3px 0}
+.color{width:27px;height:27px;background:var(--swatch);border:3px solid white;box-shadow:0 0 0 1px #d3e1f0;border-radius:50%;padding:0}
+.color.active{box-shadow:0 0 0 2px var(--blue)}
+.label{font-size:12px;color:#536e8c;font-weight:750;margin-bottom:7px;display:block}
+.numberrow{display:flex;align-items:center;gap:8px}
+.numinput{height:39px;border:1px solid #cbdced;border-radius:8px;padding:0 9px;width:93px;color:#193954;font-weight:800;background:#fff}
+.unit{font-size:12px;color:#8497ab}
+.inlinecheck{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650;color:#456687;cursor:pointer}
+.inlinecheck input{accent-color:var(--blue);width:16px;height:16px}
+.helper{font-size:12px;line-height:1.5;color:#7f96ae;margin-top:8px}
+.smallblue{border:1px solid #c7d9ef;background:#f3f8ff;padding:10px 12px;border-radius:9px;color:#1f64b4;font-weight:750;font-size:12px;width:100%;text-align:left;margin-top:9px}
+.inspector-bottom{margin-top:auto;padding-top:22px}
+.info-box{border-radius:10px;background:#f5f9ff;border:1px solid #dce9fa;padding:12px 13px;font-size:12px;line-height:1.6;color:#547396}
+.info-box strong{display:block;color:#265b93;margin-bottom:3px}
+.kbd{background:#fff;border:1px solid #d7e4f3;padding:1px 5px;border-radius:5px;color:#4d6f91;font-size:11px}
+.presetrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.preset{background:#fff;border:1px solid #d6e3f1;border-radius:7px;padding:7px 10px;font-size:12px;font-weight:700;color:#587390}
+.preset.active{background:#e9f3ff;border-color:#b4d0f4;color:var(--blue)}
+.toast{position:fixed;left:50%;bottom:28px;z-index:50;transform:translate(-50%,15px);opacity:0;pointer-events:none;background:#173a60;color:white;border-radius:11px;padding:12px 19px;font-size:13px;font-weight:650;box-shadow:0 10px 28px #16345630;transition:opacity .2s,transform .2s;max-width:95vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.hidden{display:none!important}
+@media(max-width:1240px){.layout{grid-template-columns:90px minmax(0,1fr) 245px;gap:11px;padding:12px}.toolrail{padding:9px 5px}.tool{min-height:61px}.paper{width:min(100%,calc((100dvh - 230px)*1.4142857))}.header-tools .topbtn span{display:none}.header-tools .topbtn{width:38px;padding:0}.header-tools .topbtn.blue span{display:inline}.header-tools .topbtn.blue{width:auto;padding:0 12px}}
+@media(max-width:920px){.layout{grid-template-columns:75px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.inspector{grid-column:1/-1;grid-row:2;max-height:208px;overflow:auto;padding:13px 16px;display:block}.inspector-head,.inspector-kicker{display:inline-flex;vertical-align:middle;margin-right:12px}.inspector-head h2{font-size:15px}.tool-desc{display:inline-block;max-width:60%;vertical-align:middle;margin:0}.inspector-options{display:flex;align-items:center;flex-wrap:wrap;gap:0 18px}.inspector-bottom{display:none}.inspector .optiontitle{margin:10px 0 7px}.inspector .divider{display:none}.paper{width:min(100%,calc((100dvh - 370px)*1.4142857))}.workspace-head{flex-wrap:wrap}.chips{justify-content:flex-start}}
+@media(max-width:680px){.app{min-height:0;overflow:auto;height:auto;min-height:100dvh}.topbar{height:auto;min-height:65px;padding:11px 13px;flex-wrap:wrap;gap:11px}.title h1{font-size:16px}.header-tools{width:100%;justify-content:space-between;gap:4px}.header-tools .topbtn.blue span{display:inline}.layout{display:flex;flex-direction:column;gap:9px;padding:10px}.toolrail{order:1;display:flex;flex-direction:row;gap:4px;padding:7px;overflow-x:auto;flex-shrink:0;border-radius:12px}.rail-label{display:none}.tool{width:77px;min-width:67px;min-height:60px;flex-shrink:0;gap:3px}.tool svg{height:20px;width:20px}.tool span{font-size:10px}.workarea{order:2;min-height:0}.workspace-head{gap:8px}.workspace-head .chips{gap:7px}.worktitle strong{font-size:12px}.paper-enclosure{padding:8px;overflow:visible}.paper{width:100%;max-height:none}.status{height:auto;min-height:39px}.statusmessage{font-size:11px}.coordinates{font-size:10px}.inspector{order:3;max-height:none;display:block}.inspector-head{display:flex;margin-bottom:8px}.inspector-kicker{display:block}.tool-desc{display:block;max-width:none;margin-bottom:11px}.inspector-options{display:block}.inspector-bottom{display:none}.info-box{display:none}.paper-enclosure:fullscreen{padding:3px}.paper-enclosure:fullscreen .paper{width:min(100vw,calc(100vh*1.4142857));max-height:100vh}}
+@media(print){@page{size:A4 landscape;margin:0}html,body,.app{margin:0;padding:0;width:297mm;height:210mm;overflow:visible;background:#fff}.topbar,.toolrail,.workspace-head,.status,.inspector{display:none!important}.layout,.workarea,.paper-enclosure{display:block!important;margin:0;padding:0!important;border:0!important;background:#fff!important;box-shadow:none!important;width:297mm!important;height:210mm!important}.paper{display:block!important;margin:0!important;border:0!important;outline:0!important;box-shadow:none!important;width:297mm!important;height:210mm!important;max-width:none!important;max-height:none!important;aspect-ratio:297/210!important}#previewLayer,#referenceLayer,#cursorLayer{display:none!important}}
+
+/* Guided geometric construction: integrated into the existing A4 drawing atelier. */
+.layout{grid-template-columns:88px minmax(0,1fr) 354px;gap:13px;padding:13px}
+.toolrail{padding:10px 5px}
+.tool{min-height:62px}
+.inspector{padding:0;gap:0;background:#fff;overflow:auto}
+.mission-panel{padding:18px 18px 14px;background:#fff;border-bottom:1px solid #e1eaf4;flex-shrink:0}
+.mission-top{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:12px}
+.mission-kicker{color:#1769db;font-size:11px;font-weight:850;letter-spacing:.9px}
+.mission-count{font-size:11px;font-weight:850;color:#597995;background:#f2f7ff;border:1px solid #dce9fb;border-radius:40px;padding:5px 9px}
+.mission-track{height:5px;border-radius:8px;background:#e1eaf6;overflow:hidden;margin-bottom:17px}
+.mission-fill{background:#1769db;height:100%;width:0;transition:width .3s ease}
+.mission-phase{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#7290b2;margin-bottom:7px}
+.mission-title{font-size:19px;line-height:1.23;letter-spacing:-.4px;font-weight:850;margin:0 0 11px;color:#183b60}
+.mission-instruction{font-size:15px;line-height:1.55;color:#263f5d;margin:0 0 15px}
+.mission-tool-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.mission-tool{font-size:11px;color:#35618e;background:#edf5ff;border:1px solid #d5e6fa;border-radius:30px;padding:5px 9px;font-weight:800}
+.mission-prepare{font-size:11px;font-weight:750;color:#1769db;background:white;border:1px solid #c9def7;border-radius:7px;padding:7px 9px}
+.mission-hint{background:#f7faff;border:1px solid #e0eafa;border-radius:8px;padding:11px 12px;font-size:12px;line-height:1.55;color:#3b638c;margin:5px 0 13px;animation:mission-in .2s ease-out}
+.mission-hint-toggle{font-size:12px;font-weight:700;color:#4c77a5;border:0;padding:1px 0;background:transparent;margin:1px 0 12px;text-align:left}
+.mission-answer{margin:0 0 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mission-answer label{font-size:12px;font-weight:700;color:#53718f;width:100%}
+.mission-answer input{height:41px;border-radius:9px;border:1px solid #bed3ec;color:#183958;background:white;padding:0 11px;width:144px;font-size:16px;font-weight:750}
+.mission-answer .unit{font-weight:700}
+.mission-answer select{border:1px solid #bed3ec;background:#fff;padding:9px;border-radius:8px;width:100%;color:#274764;font-weight:600}
+.mission-feedback{font-size:12px;line-height:1.5;padding:11px 12px;border-radius:9px;margin:10px 0 0;border:1px solid #f5d6a2;color:#8b5310;background:#fff8e9;animation:mission-in .25s ease-out}
+.mission-feedback.success{border-color:#b6e6d1;color:#146b50;background:#edf9f3}
+.mission-main-btn{background:#1769db;border:1px solid #1769db;border-radius:9px;color:white;padding:12px 13px;width:100%;font-size:14px;font-weight:850;min-height:44px}
+.mission-main-btn.done{background:#098b64;border-color:#098b64}
+.mission-nav{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:9px}
+.mission-nav button{background:white;border:1px solid #d8e5f4;border-radius:8px;padding:8px 11px;font-size:12px;font-weight:750;color:#4e6e8e}
+.mission-nav button:disabled{opacity:.32;cursor:not-allowed}
+.mission-finished{border:1px solid #b6e6d1;background:#f0fbf6;border-radius:11px;padding:16px;margin:4px 0}
+.mission-finished h2{color:#08734d;font-size:21px;margin:0 0 10px}
+.mission-finished p{font-size:14px;line-height:1.5;margin:0 0 8px}
+.tool-settings-box{display:block;border-top:1px solid #e1eaf4;background:#fff}
+.tool-settings-box>summary{padding:13px 18px;color:#385f8d;font-size:13px;font-weight:800;cursor:pointer;user-select:none;background:#f9fbff;position:sticky;top:0;z-index:2}
+.tool-settings-inner{padding:16px 18px 18px}
+.tool-settings-inner .inspector-bottom{margin-top:12px}
+@keyframes mission-in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.mission-mode-note{font-size:11px;color:#879cb1;margin:9px 0 0}
+.app:fullscreen{height:100vh;min-height:0;width:100vw}
+.inspector-options [data-erase]{font-size:10px;padding:9px 3px;white-space:normal;line-height:1.25}
+@media(max-width:1240px){.layout{grid-template-columns:76px minmax(0,1fr) 310px;gap:9px;padding:10px}.mission-panel{padding:13px}.tool-settings-inner{padding:13px}.mission-title{font-size:17px}.mission-instruction{font-size:14px}}
+@media(max-width:920px){.layout{grid-template-columns:75px minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(235px,auto)}.inspector{grid-row:2;grid-column:1/-1;max-height:310px;padding:0;display:block;overflow:auto}.mission-panel{padding:14px}.tool-settings-box{display:block}.tool-settings-inner{padding:12px}.paper{width:min(100%,calc((100dvh - 485px)*1.4142857))}}
+@media(max-width:680px){.layout{display:flex;flex-direction:column}.inspector{order:1;max-height:none;overflow:visible}.mission-panel{padding:15px}.tool-settings-box{display:block}.tool-settings-inner{padding:12px}.toolrail{order:2}.workarea{order:3}.paper{width:100%;max-height:none}.workspace-head .chips{flex-wrap:wrap}}
+@media(print){.inspector,.mission-panel{display:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<header class="topbar">
+ <div class="identity">
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19 12 3l8 16H4Z"/><path d="M8 19 12 11l4 8"/><path d="M12 3v16"/></svg></div>
+  <div class="title"><h1>Atelier de géométrie</h1><p>Mathématiques · Terminale CAP CMIS</p></div>
+ </div>
+ <div class="header-tools">
+   <button class="topbtn icononly" id="undoBtn" title="Annuler (Ctrl/⌘ + Z)" aria-label="Annuler"><svg viewBox="0 0 24 24"><path d="m9 14-5-5 5-5"/><path d="M4 9h11a6 6 0 0 1 0 12"/></svg></button>
+   <button class="topbtn icononly" id="redoBtn" title="Rétablir (Ctrl/⌘ + Maj + Z)" aria-label="Rétablir"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a6 6 0 0 0 0 12"/></svg></button>
+   <span class="divisor"></span>
+   <button class="topbtn" id="loadBtn" title="Ouvrir un projet sauvegardé"><svg viewBox="0 0 24 24"><path d="M4 9V5h6l2 3h8v12H4Z"/><path d="M4 11h16"/></svg><span>Ouvrir</span></button>
+   <input type="file" accept=".json,application/json" id="fileLoad" class="hidden">
+   <button class="topbtn" id="saveBtn" title="Enregistrer le projet modifiable"><svg viewBox="0 0 24 24"><path d="M5 3h12l3 3v15H4V3Z"/><path d="M8 3v6h8V3M8 21v-8h8v8"/></svg><span>Projet</span></button>
+   <button class="topbtn" id="svgBtn" title="Télécharger un dessin vectoriel SVG"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h4M9 12h7M9 16h7"/></svg><span>SVG</span></button>
+   <button class="topbtn blue" id="pngBtn" title="Exporter la feuille en image"><svg viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 17v4h14v-4"/></svg><span>Exporter PNG</span></button>
+   <button class="topbtn icononly" id="printBtn" title="Imprimer en A4 paysage" aria-label="Imprimer"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4V9h16v9h-2"/><path d="M6 15h12v6H6z"/></svg></button>
+   <button class="topbtn icononly" id="fullscreenBtn" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></button>
+ </div>
+</header>
+<main class="layout">
+ <nav class="toolrail" id="toolrail" aria-label="Outils géométriques">
+  <div class="rail-label">OUTILS</div>
+  <button class="tool active" type="button" data-tool="pen" title="Stylo · P" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="m4 20 4.7-1 11-11.1a2.2 2.2 0 0 0-3.1-3.1L5.6 15.9 4 20Z"/><path d="m14.7 6.7 3.1 3.1M4 20l3.2-.7"/></svg><span>Stylo</span></button>
+  <button class="tool" type="button" data-tool="ruler" title="Règle · R" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m3 16 13-13 5 5L8 21l-5-5Z"/><path d="m12 7 2.7 2.7M9 10l1.8 1.8M6 13l2.7 2.7"/></svg><span>Règle</span></button>
+  <button class="tool" type="button" data-tool="compass" title="Compas · C" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M11 6 5.5 21M13 6 18.5 21M8 14l8-3M4 21h3M17 21h3"/></svg><span>Compas</span></button>
+  <button class="tool" type="button" data-tool="square" title="Équerre · E" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 21V3l18 18H3Z"/><path d="M8 16v-5l5 5H8Z"/></svg><span>Équerre</span></button>
+  <button class="tool" type="button" data-tool="protractor" title="Rapporteur · A" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 18a9 9 0 0 1 18 0H3Z"/><path d="M12 18V9M6 18l2.2-5.5M18 18l-2.2-5.5M12 18l6-6"/></svg><span>Rapporteur</span></button>
+  <button class="tool" type="button" data-tool="point" title="Point · M" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span>Point</span></button>
+  <button class="tool" type="button" data-tool="eraser" title="Gomme · G" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m4 14 9.5-9.5a2 2 0 0 1 2.8 0l4.2 4.2a2 2 0 0 1 0 2.8L12 20H7.5L4 16.5a1.8 1.8 0 0 1 0-2.5Z"/><path d="m9 9 7 7M12 20h9"/></svg><span>Gomme</span></button>
+  <button class="tool" type="button" data-tool="select" title="Déplacer · V" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4M18 8l4 4-4 4"/></svg><span>Déplacer</span></button>
+ </nav>
+ <section class="workarea">
+  <div class="workspace-head">
+   <div class="worktitle"><strong>Mission 2 · Platine de douche</strong><span class="pill">A4 paysage · 29,7 × 21 cm</span></div>
+   <div class="chips">
+     <label class="switch" title="Afficher un quadrillage tous les centimètres"><input id="gridSwitch" type="checkbox"><span>Quadrillage</span></label>
+     <label class="switch" title="Afficher une marge à 1 cm du bord de la feuille"><input id="marginSwitch" type="checkbox"><span>Marge 1 cm</span></label>
+     <label class="switch" title="Accrocher les points à un quadrillage de 5 mm"><input id="snapSwitch" type="checkbox"><span>Accrochage 5 mm</span></label>
+   </div>
+  </div>
+  <div class="paper-enclosure" id="paperEnclosure">
+   <div class="paper" id="paper">
+    <svg id="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297 210" role="img" aria-label="Feuille blanche interactive A4 paysage, outils géométriques utilisables">
+     <defs><pattern id="centimeterGrid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#d5e5f7" stroke-width=".23"/></pattern></defs>
+     <rect width="297" height="210" fill="#fff" id="paperBg"/>
+     <rect width="297" height="210" fill="url(#centimeterGrid)" id="gridVisual" visibility="hidden"/>
+     <rect x="10" y="10" width="277" height="190" fill="none" stroke="#b3c9e3" stroke-width=".5" stroke-dasharray="2.7 2.3" id="marginVisual" visibility="hidden"/>
+     <g id="shapesLayer"></g>
+     <g id="missionGuideLayer" class="canvas-tool-guide"></g>
+      <g id="referenceLayer" class="canvas-tool-guide"></g>
+     <g id="previewLayer" class="canvas-tool-guide"></g>
+     <g id="cursorLayer" class="canvas-tool-guide"></g>
+    </svg>
+   </div>
+  </div>
+  <div class="status"><div class="statusmessage"><span class="statusmark"></span><span id="statusText">Stylo : dessine librement sur la feuille.</span></div><div class="coordinates" id="coordinates">x : — · y : —</div></div>
+ </section>
+ <aside class="inspector" aria-label="Mission de construction et réglages des outils">
+   <section class="mission-panel" id="missionPanel" aria-label="Consigne progressive">
+    <div class="mission-top"><span class="mission-kicker">MISSION 2 · PLATINE DE DOUCHE</span><span class="mission-count" id="missionCount">1 / 20</span></div>
+    <div class="mission-track"><div class="mission-fill" id="missionFill"></div></div>
+    <div class="mission-phase" id="missionPhase"></div>
+    <h2 class="mission-title" id="missionTitle"></h2>
+    <p class="mission-instruction" id="missionInstruction"></p>
+    <div class="mission-tool-row" id="missionToolRow"></div>
+    <div id="missionAnswer"></div>
+    <button type="button" class="mission-hint-toggle" id="missionHintBtn">+ Afficher un indice</button>
+    <div class="mission-hint hidden" id="missionHint"></div>
+    <button type="button" class="mission-main-btn" id="missionValidate">Vérifier mon tracé</button>
+    <div id="missionFeedback" aria-live="polite"></div>
+    <div class="mission-nav"><button id="missionPrevious" type="button">← Précédente</button><button id="missionRestart" type="button" title="Recommencer cette mission">Recommencer la mission ↺</button></div>
+    <p class="mission-mode-note">Les outils tracent uniquement ce que tu construis. La vérification n’ajoute aucun trait.</p>
+   </section>
+   <details class="tool-settings-box" id="toolSettingsBox"><summary>Réglages de l’outil sélectionné</summary><div class="tool-settings-inner">
+   <div class="inspector-kicker">OUTIL SÉLECTIONNÉ</div>
+   <div class="inspector-head"><div class="inspector-icon" id="inspectorIcon"></div><h2 id="inspectorTitle">Stylo</h2></div>
+   <p class="tool-desc" id="inspectorDesc"></p>
+   <div class="divider"></div>
+   <div class="inspector-options" id="inspectorOptions"></div>
+   <div class="inspector-bottom"><div class="info-box"><strong>Précision et liberté</strong>Les mesures sont exprimées en centimètres sur une feuille A4. Les traits restent modifiables et peuvent être enregistrés.<p style="margin:8px 0 0">Raccourcis : <span class="kbd">Ctrl/⌘ + Z</span> annuler · <span class="kbd">Échap</span> interrompre</p></div><button type="button" class="smallblue" id="clearBtn">Effacer toute la feuille</button></div>
+   </div></details>
+  </aside>
+</main>
+<div id="toast" class="toast" role="status"></div>
+<script>
+(()=>{
+'use strict';
+const W=297,H=210,NS='http://www.w3.org/2000/svg',STORE='cmis_platine_douche_mission2_v1';
+const $=id=>document.getElementById(id);
+const svg=$('sheet'), shapesLayer=$('shapesLayer'), previewLayer=$('previewLayer'), referenceLayer=$('referenceLayer'), cursorLayer=$('cursorLayer');
+const nameMap={pen:'Stylo',ruler:'Règle',compass:'Compas',square:'Équerre',protractor:'Rapporteur',point:'Point',eraser:'Gomme',select:'Déplacer'};
+const descriptions={
+ pen:'Dessine directement sur la feuille, comme avec un stylo. Maintiens et déplace la souris ou ton doigt.',
+ ruler:'Trace un segment parfaitement droit : pars d’un point, puis glisse jusqu’à l’extrémité. La longueur apparaît en centimètres, pendant le tracé.',
+ compass:'Place la pointe au centre et écarte le compas en glissant pour choisir le rayon. Tu peux aussi fixer une ouverture précise.',
+ square:'Trace une perpendiculaire à un segment existant. Sélectionne une droite d’appui, puis glisse pour tracer à 90°.',
+ protractor:'Construis un angle : choisis sa mesure, puis fais glisser depuis le sommet pour déterminer la direction de départ.',
+ point:'Clique sur la feuille pour placer un point et lui donner un nom (A, B, C, O…).',
+ eraser:'Clique sur un tracé pour l’effacer. Tu peux aussi glisser pour effacer plusieurs objets.',
+ select:'Clique sur un tracé, puis déplace-le en faisant glisser la souris ou ton doigt.'
+};
+const colors=['#193954','#20262e','#1769db','#bd6740','#18866a','#93a5b7'];
+let shapes=[], tool='pen', active=null, selectedReference=null, pickingReference=false;
+let undoStack=[],redoStack=[],nextId=1, nextPoint=0;
+let settings={grid:true,margin:false,snap:true,width:0.65,color:colors[0],compassFixed:false,compassRadius:2,rulerFixed:false,rulerLength:6,squareFixed:false,squareLength:9,eraserMode:'whole',angle:45,angleDirection:1,pointLabel:'A'};
+let missionStep=0,missionPassed=[],missionAnswers={},missionHintOpen=false;
+const segmentTypes=['segment'];
+const TAU=2*Math.PI;
+function positiveSpan(a,b){return ((b-a)%TAU+TAU)%TAU;}
+function arcEnd(s,ang){return{x:s.center.x+s.r*Math.cos(ang),y:s.center.y+s.r*Math.sin(ang)};}
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const copy=o=>JSON.parse(JSON.stringify(o));
+const finite=n=>Number.isFinite(n);
+function isEditableFocus(){return ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)}
+function snappoint(p){
+ // Aimantation légère sur les points géométriques existants.
+ let best=null,close=2.7;
+ for(const s of shapes){
+  const anchors=s.type==='segment'?[s.a,s.b]:s.type==='circle'?[s.center,{x:s.center.x+s.r,y:s.center.y},{x:s.center.x-s.r,y:s.center.y},{x:s.center.x,y:s.center.y+s.r},{x:s.center.x,y:s.center.y-s.r}]:s.type==='arc'?[s.center,arcEnd(s,s.a0),arcEnd(s,s.a1)]:s.type==='point'?[{x:s.x,y:s.y}]:s.type==='angle'?[s.origin]:[];
+  for(const a of anchors){const d=dist(p,a);if(d<close){close=d;best=a;}}
+ }
+ if(best)return{x:best.x,y:best.y};
+ if(!settings.snap)return p;
+ return {x:clamp(Math.round(p.x/5)*5,0,W),y:clamp(Math.round(p.y/5)*5,0,H)};
+}
+function getPoint(evt){let m=svg.getScreenCTM();if(!m)return{x:0,y:0};let sp=svg.createSVGPoint();sp.x=evt.clientX;sp.y=evt.clientY;let p=sp.matrixTransform(m.inverse());return {x:clamp(p.x,0,W),y:clamp(p.y,0,H)};}
+const mmToCm=v=>(v/10).toLocaleString('fr-FR',{maximumFractionDigits:2});
+function fmt(v){return mmToCm(v)+' cm'}
+function el(name,attrs={},parent=null){const e=document.createElementNS(NS,name);for(let [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(parent)parent.appendChild(e);return e;}
+function htmlEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function status(msg){$('statusText').textContent=msg;}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function saveLocal(){try{localStorage.setItem(STORE,JSON.stringify({version:2,shapes,settings,nextId,nextPoint,mission:{step:missionStep,passed:missionPassed,answers:missionAnswers}}));}catch(e){}}
+function pushUndo(){undoStack.push(JSON.stringify(shapes));if(undoStack.length>55)undoStack.shift();redoStack=[];}
+function historyUpdate(){ $('undoBtn').disabled=undoStack.length===0;$('redoBtn').disabled=redoStack.length===0;}
+function changed(){render();historyUpdate();if(typeof renderMission==='function')refreshMissionAfterDrawing();saveLocal();}
+function commit(shape){pushUndo();shapes.push({...shape,id:nextId++});changed();}
+function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(shapes));shapes=JSON.parse(undoStack.pop());selectedReference=selectedReference&&shapes.some(s=>s.id===selectedReference)?selectedReference:null;changed();}
+function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(shapes));shapes=JSON.parse(redoStack.pop());changed();}
+function drawShape(s,layer=shapesLayer){const common={fill:'none',stroke:s.color||settings.color,'stroke-width':s.width||.65,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'none'};let g=el('g',{'data-shape':s.id??'preview'},layer);
+ if(s.type==='pen'){let d=s.points.map((p,i)=>(i?'L':'M')+p.x.toFixed(3)+' '+p.y.toFixed(3)).join(' ');el('path',{...common,d},g);}
+ else if(s.type==='segment'){el('line',{...common,x1:s.a.x,y1:s.a.y,x2:s.b.x,y2:s.b.y},g);}
+ else if(s.type==='circle'){el('circle',{...common,cx:s.center.x,cy:s.center.y,r:s.r},g);el('circle',{cx:s.center.x,cy:s.center.y,r:.8,fill:s.color||settings.color},g);}
+ else if(s.type==='arc'){const a=arcEnd(s,s.a0),b=arcEnd(s,s.a1),span=positiveSpan(s.a0,s.a1);el('path',{...common,d:`M ${a.x} ${a.y} A ${s.r} ${s.r} 0 ${span>Math.PI+1e-5?1:0} 1 ${b.x} ${b.y}`},g);}
+ else if(s.type==='angle'){el('line',{...common,x1:s.origin.x,y1:s.origin.y,x2:s.b.x,y2:s.b.y},g);el('line',{...common,x1:s.origin.x,y1:s.origin.y,x2:s.c.x,y2:s.c.y},g);
+  let aa=Math.atan2(s.b.y-s.origin.y,s.b.x-s.origin.x);let ra=Math.min(15,dist(s.origin,s.b)*.33);let direction=s.angleDirection||1;
+  let ep={x:s.origin.x+ra*Math.cos(aa+direction*s.angle*Math.PI/180),y:s.origin.y+ra*Math.sin(aa+direction*s.angle*Math.PI/180)};
+  let st={x:s.origin.x+ra*Math.cos(aa),y:s.origin.y+ra*Math.sin(aa)};
+  el('path',{d:`M ${st.x} ${st.y} A ${ra} ${ra} 0 ${s.angle>180?1:0} ${direction===1?1:0} ${ep.x} ${ep.y}`,fill:'none',stroke:s.color||settings.color,'stroke-width':.45},g);
+  let mm={x:s.origin.x+(ra+6)*Math.cos(aa+direction*s.angle*Math.PI/360),y:s.origin.y+(ra+6)*Math.sin(aa+direction*s.angle*Math.PI/360)};
+  let text=el('text',{x:mm.x,y:mm.y,'font-size':4,'text-anchor':'middle',fill:s.color||settings.color,'font-family':'Arial,sans-serif','font-weight':'700'},g);text.textContent=s.angle+'°';
+ }
+ else if(s.type==='point'){el('circle',{cx:s.x,cy:s.y,r:1.1,fill:s.color||settings.color},g);let t=el('text',{x:s.x+2,y:s.y-2.5,'font-size':4.2,'font-family':'Arial,sans-serif','font-weight':'700',fill:s.color||settings.color},g);t.textContent=s.label||'';}
+ return g;}
+function render(){shapesLayer.replaceChildren();shapes.forEach(s=>drawShape(s));renderReference();}
+function findReference(){const x=shapes.find(s=>s.id===selectedReference&&s.type==='segment');if(x)return x;const last=shapes.slice().reverse().find(s=>s.type==='segment');selectedReference=last?.id??null;return last||null;}
+function renderReference(){referenceLayer.replaceChildren();if(tool!=='square')return;let r=findReference();if(!r)return;el('line',{x1:r.a.x,y1:r.a.y,x2:r.b.x,y2:r.b.y,stroke:'#df9a34','stroke-width':1.6,'stroke-dasharray':'3 2',opacity:.85},referenceLayer);}
+function clearPreview(){previewLayer.replaceChildren();cursorLayer.replaceChildren();}
+function guideCircle(center,r){el('circle',{cx:center.x,cy:center.y,r:1.5,fill:'#df9225',stroke:'#fff','stroke-width':.6},previewLayer);el('circle',{cx:center.x,cy:center.y,r,stroke:'#1769db','stroke-width':.9,'stroke-dasharray':'2 2',fill:'none'},previewLayer);el('line',{x1:center.x,y1:center.y,x2:center.x+r,y2:center.y,stroke:'#df9225','stroke-width':.7,'stroke-dasharray':'2 1'},previewLayer);labelAt(center.x+5,center.y-7,'R = '+fmt(r));}
+function labelAt(x,y,txt){x=clamp(x,11,W-38);y=clamp(y,8,H-7);let w=txt.length*2.7+8;el('rect',{x:x-3,y:y-6,width:w,height:9,rx:2,fill:'#fff',stroke:'#c0dafa','stroke-width':.35},previewLayer);const t=el('text',{x,y,'font-size':4.1,fill:'#1769db','font-family':'Arial,sans-serif','font-weight':'700'},previewLayer);t.textContent=txt;}
+function guideRuler(a,b){let d=dist(a,b),theta=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;let g=el('g',{transform:`translate(${a.x} ${a.y}) rotate(${theta})`,opacity:.85},previewLayer);
+ el('rect',{x:0,y:-6,width:d,height:10,rx:1,fill:'#f7e8c7',stroke:'#be9a55','stroke-width':.3},g);
+ for(let i=0;i<=Math.floor(d/5);i++){const mm=i*5;el('line',{x1:mm,y1:-6,x2:mm,y2:i%2===0?-1.6:-3.3,stroke:'#956e2a','stroke-width':.34},g);if(i%2===0&&i>0&&i<d/5){const t=el('text',{x:mm,y:2.5,'font-size':2.7,'text-anchor':'middle',fill:'#956e2a','font-family':'Arial,sans-serif'},g);t.textContent=i/2;}}
+ el('line',{x1:0,y1:0,x2:d,y2:0,stroke:settings.color,'stroke-width':settings.width,'stroke-linecap':'round'},g);
+ labelAt((a.x+b.x)/2+3,(a.y+b.y)/2-10,fmt(d));
+}
+function guideSquare(a,b,ref){if(!ref)return;let d=dist(a,b);let ux=(ref.b.x-ref.a.x)/dist(ref.a,ref.b),uy=(ref.b.y-ref.a.y)/dist(ref.a,ref.b);let vx=-uy,vy=ux;let sign=((b.x-a.x)*vx+(b.y-a.y)*vy)>=0?1:-1;vx*=sign;vy*=sign;
+ const size=clamp(d*.38,12,24);let coords=[[a.x,a.y],[a.x+ux*size,a.y+uy*size],[a.x+vx*size,a.y+vy*size]];el('polygon',{points:coords.map(p=>p.join(',')).join(' '),fill:'#dfeefa',opacity:.65,stroke:'#e2a249','stroke-width':.5},previewLayer);
+ el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:settings.color,'stroke-width':settings.width},previewLayer);
+ let ro=4;el('polyline',{points:[[a.x+ux*ro,a.y+uy*ro],[a.x+ux*ro+vx*ro,a.y+uy*ro+vy*ro],[a.x+vx*ro,a.y+vy*ro]].map(p=>p.join(',')).join(' '),fill:'none',stroke:'#e79b29','stroke-width':.7},previewLayer);
+ labelAt(b.x+3,b.y-4,'90° · '+fmt(d));}
+function drawGuide(activeMove){previewLayer.replaceChildren();if(!activeMove)return;
+ const a=activeMove.start,b=activeMove.end;
+ if(activeMove.tool==='pen')drawShape({type:'pen',points:activeMove.points,color:settings.color,width:settings.width},previewLayer);
+ if(activeMove.tool==='ruler')guideRuler(a,b);
+ if(activeMove.tool==='compass'){guideCircle(a,activeMove.r||Math.max(2,dist(a,b)));}
+ if(activeMove.tool==='square')guideSquare(a,b,findReference());
+ if(activeMove.tool==='protractor')drawShape({type:'angle',origin:a,b:activeMove.b,c:activeMove.c,angle:settings.angle,angleDirection:settings.angleDirection,color:settings.color,width:settings.width},previewLayer);
+ if(activeMove.tool==='select'&&activeMove.ghost)drawShape(activeMove.ghost,previewLayer);
+}
+function distanceToSegment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y;let t=dx*dx+dy*dy===0?0:clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
+function hitDistance(p,s){if(s.type==='circle')return Math.abs(dist(p,s.center)-s.r);
+ if(s.type==='arc'){let theta=((Math.atan2(p.y-s.center.y,p.x-s.center.x)%TAU)+TAU)%TAU,from=((s.a0%TAU)+TAU)%TAU,span=positiveSpan(s.a0,s.a1),rel=positiveSpan(from,theta);if(rel<=span+.015)return Math.abs(dist(p,s.center)-s.r);return Math.min(dist(p,arcEnd(s,s.a0)),dist(p,arcEnd(s,s.a1)));}
+ if(s.type==='segment')return distanceToSegment(p,s.a,s.b);
+ if(s.type==='pen'){let m=Infinity;for(let i=1;i<s.points.length;i++)m=Math.min(m,distanceToSegment(p,s.points[i-1],s.points[i]));return s.points.length===1?dist(p,s.points[0]):m;}
+ if(s.type==='point')return dist(p,{x:s.x,y:s.y});
+ if(s.type==='angle')return Math.min(distanceToSegment(p,s.origin,s.b),distanceToSegment(p,s.origin,s.c));return Infinity;}
+function hit(p,predicate=()=>true,tol=3.5){let best=null,d=tol;for(let i=shapes.length-1;i>=0;i--){let s=shapes[i];if(!predicate(s))continue;let z=hitDistance(p,s);if(z<=d){d=z;best=s;}}return best;}
+function updateSquareStatus(){let r=findReference();if(!r)status('Équerre : trace d’abord une droite avec la règle.');else status(pickingReference?'Équerre : clique sur la droite qui servira d’appui.':'Équerre : glisse pour tracer une perpendiculaire à la droite surlignée.');}
+function selectTool(next){if(active)return;tool=next;pickingReference=next==='square'&&!findReference();$('sheet').setAttribute('class','tool-'+next);document.querySelectorAll('[data-tool]').forEach(b=>{let a=b.dataset.tool===tool;b.classList.toggle('active',a);b.setAttribute('aria-pressed',String(a));});renderReference();renderInspector();
+ let help={pen:'Stylo : dessine librement sur la feuille.',ruler:'Règle : glisse pour tracer un segment droit.',compass:'Compas : place le centre puis glisse pour ouvrir le rayon.',square:'',protractor:'Rapporteur : fais glisser pour construire un angle.',point:'Point : clique pour marquer un point.',eraser:'Gomme : touche un tracé pour le supprimer.',select:'Déplacer : fais glisser un tracé pour le repositionner.'};
+ if(next==='square')updateSquareStatus();else status(help[next]);}
+function renderInspector(){const icon=document.querySelector(`[data-tool="${tool}"] svg`);$('inspectorIcon').innerHTML=icon?icon.outerHTML:'';$('inspectorTitle').textContent=nameMap[tool];$('inspectorDesc').textContent=descriptions[tool];let opt='';
+ if(['pen','ruler','compass','square','protractor','point'].includes(tool)){
+ opt+='<div class="optiontitle">Couleur du tracé</div><div class="colors">'+colors.map(c=>`<button class="color ${c===settings.color?'active':''}" style="--swatch:${c}" data-color="${c}" aria-label="Choisir la couleur ${c}" title="${c}"></button>`).join('')+'</div>';
+ if(tool!=='point')opt+='<div class="optiontitle">Épaisseur</div><div class="segmented">'+[[.35,'Fin'],[.65,'Normal'],[1.1,'Épais']].map(([v,t])=>`<button class="seg ${settings.width==v?'active':''}" data-width="${v}">${t}</button>`).join('')+'</div>';
+ }
+ if(tool==='ruler'){
+ opt+='<div class="optiontitle">Longueur précise</div><label class="inlinecheck"><input id="fixedRuler" type="checkbox" '+(settings.rulerFixed?'checked':'')+'> Fixer la longueur du segment</label>';
+ opt+='<div class="numberrow" style="margin-top:10px"><input class="numinput" id="rulerLength" type="number" min="0.2" max="26" step="0.1" value="'+settings.rulerLength+'"><span class="unit">cm</span></div>';
+ }
+ if(tool==='compass'){
+ opt+='<div class="optiontitle">Ouverture du compas</div><label class="inlinecheck"><input id="fixedCompass" type="checkbox" '+(settings.compassFixed?'checked':'')+'> Utiliser un rayon précis</label>';
+ opt+='<div class="numberrow" style="margin-top:12px"><input class="numinput" id="compassRadius" type="number" step="0.05" min="0.1" max="14" value="'+settings.compassRadius+'"><span class="unit">cm de rayon</span></div><div class="helper">'+(settings.compassFixed?'Clique sur la feuille pour créer directement le cercle.':'Ou laisse le rayon libre et déplace le compas en glissant.')+'</div>';
+ }
+ if(tool==='square'){
+ let r=findReference();opt+='<div class="optiontitle">Droite d’appui</div><div class="helper">'+(r?'Une droite est sélectionnée en pointillés orange.':'Aucune droite disponible : trace d’abord un segment à la règle.')+'</div><button class="smallblue" id="changeReference" type="button">'+(r?'Choisir une autre droite':'Choisir une droite')+'</button>';
+ opt+='<div class="optiontitle">Longueur de la perpendiculaire</div><label class="inlinecheck"><input id="fixedSquare" type="checkbox" '+(settings.squareFixed?'checked':'')+'> Longueur précise</label><div class="numberrow" style="margin-top:10px"><input class="numinput" id="squareLength" type="number" min="0.2" max="20" step="0.1" value="'+settings.squareLength+'"><span class="unit">cm</span></div>';
+ }
+ if(tool==='protractor'){
+ opt+='<div class="optiontitle">Mesure de l’angle</div><div class="numberrow"><input class="numinput" type="number" min="1" max="179" step="1" id="angleInput" value="'+settings.angle+'"><span class="unit">degrés (°)</span></div>';
+ opt+='<div class="presetrow">'+[30,45,60,90,120].map(a=>`<button class="preset ${a===settings.angle?'active':''}" data-angle="${a}">${a}°</button>`).join('')+'</div>';
+ opt+='<div class="optiontitle">Sens de l’angle</div><div class="segmented"><button class="seg '+(settings.angleDirection===1?'active':'')+'" data-direction="1">↻ Horaire</button><button class="seg '+(settings.angleDirection===-1?'active':'')+'" data-direction="-1">↺ Anti-horaire</button></div>';
+ }
+ if(tool==='point'){
+ opt+='<div class="optiontitle">Nom du prochain point</div><div class="numberrow"><input class="numinput" id="pointLabel" type="text" maxlength="3" value="'+htmlEsc(settings.pointLabel)+'" aria-label="Nom du point"></div>';
+ }
+ if(tool==='eraser')opt='<div class="optiontitle">Action de la gomme</div><div class="segmented">'+[['whole','Tout effacer'],['bottom','Garder le bas'],['northwest','Garder ¼ haut gauche']].map(([val,label])=>'<button type="button" class="seg '+(settings.eraserMode===val?'active':'')+'" data-erase="'+val+'">'+label+'</button>').join('')+'</div><div class="helper">Pour la mission, choisis la portion du cercle à conserver puis clique sur son contour à effacer.</div>';
+ if(tool==='select')opt='<div class="info-box" style="margin-top:16px"><strong>Déplacer un objet</strong>Les segments, cercles, points et tracés libres peuvent être repositionnés sans les redessiner.</div>';
+ $('inspectorOptions').innerHTML=opt;
+ document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{settings.color=b.dataset.color;renderInspector();saveLocal();}));
+ document.querySelectorAll('[data-width]').forEach(b=>b.addEventListener('click',()=>{settings.width=Number(b.dataset.width);renderInspector();saveLocal();}));
+ $('fixedRuler')?.addEventListener('change',e=>{settings.rulerFixed=e.target.checked;renderInspector();saveLocal();});
+ $('rulerLength')?.addEventListener('change',e=>{settings.rulerLength=clamp(Number(e.target.value)||6,.2,26);renderInspector();saveLocal();});
+ $('fixedSquare')?.addEventListener('change',e=>{settings.squareFixed=e.target.checked;renderInspector();saveLocal();});
+ $('squareLength')?.addEventListener('change',e=>{settings.squareLength=clamp(Number(e.target.value)||9,.2,20);renderInspector();saveLocal();});
+ document.querySelectorAll('[data-erase]').forEach(b=>b.addEventListener('click',()=>{settings.eraserMode=b.dataset.erase;renderInspector();saveLocal();}));
+ $('fixedCompass')?.addEventListener('change',e=>{settings.compassFixed=e.target.checked;renderInspector();saveLocal();});
+ $('compassRadius')?.addEventListener('change',e=>{settings.compassRadius=clamp(Number(e.target.value)||2,.1,14);renderInspector();saveLocal();});
+ $('changeReference')?.addEventListener('click',()=>{pickingReference=true;status('Équerre : clique sur le segment qui servira d’appui.');toast('Choisis une droite déjà dessinée.');});
+ $('angleInput')?.addEventListener('change',e=>{settings.angle=clamp(Math.round(Number(e.target.value)||45),1,179);renderInspector();saveLocal();});
+ document.querySelectorAll('[data-angle]').forEach(b=>b.addEventListener('click',()=>{settings.angle=Number(b.dataset.angle);renderInspector();saveLocal();}));
+ document.querySelectorAll('[data-direction]').forEach(b=>b.addEventListener('click',()=>{settings.angleDirection=Number(b.dataset.direction);renderInspector();saveLocal();}));
+ $('pointLabel')?.addEventListener('input',e=>{settings.pointLabel=e.target.value.replace(/[^0-9A-Za-zÀ-ÿ]/g,'').toUpperCase().slice(0,3)||'A';saveLocal();});
+}
+function translated(s,dx,dy){let out=copy(s);let move=p=>{p.x=clamp(p.x+dx,0,W);p.y=clamp(p.y+dy,0,H);};if(s.type==='pen')out.points.forEach(move);else if(s.type==='circle'||s.type==='arc')move(out.center);else if(s.type==='segment'){move(out.a);move(out.b)}else if(s.type==='angle'){move(out.origin);move(out.b);move(out.c)}else if(s.type==='point'){out.x=clamp(out.x+dx,0,W);out.y=clamp(out.y+dy,0,H)}return out;}
+function anglePreview(a,b){let theta=Math.atan2(b.y-a.y,b.x-a.x),len=Math.max(8,dist(a,b)),end={x:a.x+len*Math.cos(theta+settings.angleDirection*settings.angle*Math.PI/180),y:a.y+len*Math.sin(theta+settings.angleDirection*settings.angle*Math.PI/180)};return{type:'angle',origin:a,b,c:end,angle:settings.angle,angleDirection:settings.angleDirection,color:settings.color,width:settings.width};}
+function endSquare(a,raw,ref){let u=(ref.b.x-ref.a.x)/dist(ref.a,ref.b),v=(ref.b.y-ref.a.y)/dist(ref.a,ref.b);let px=-v,py=u;let signed=(raw.x-a.x)*px+(raw.y-a.y)*py;if(settings.snap)signed=Math.round(signed/5)*5;return{x:clamp(a.x+signed*px,0,W),y:clamp(a.y+signed*py,0,H)};}
+function pointerDown(evt){if(evt.button!==0&&evt.pointerType==='mouse')return;evt.preventDefault();try{svg.setPointerCapture(evt.pointerId)}catch{}
+ let p=getPoint(evt),snap=snappoint(p);
+ if(tool==='point'){const used=settings.pointLabel.toUpperCase();commit({type:'point',x:snap.x,y:snap.y,label:used,color:settings.color});{const letter=used.charCodeAt(0);settings.pointLabel=(used.length===1&&letter>=65&&letter<90)?String.fromCharCode(letter+1):'A';}renderInspector();status('Point '+used+' placé.');return;}
+ if(tool==='eraser'){
+  const special=false;
+  let h=hit(p,s=>special?s.type==='circle':true);
+  if(!h){status('Gomme : clique sur le contour du tracé à modifier.');return;}
+  if(special){
+   const isBottom=settings.eraserMode==='bottom';
+   const keep=isBottom?{center:{x:130,y:130},r:30,a0:0,a1:Math.PI}:{center:{x:180,y:70},r:20,a0:Math.PI,a1:1.5*Math.PI};
+   if(dist(h.center,keep.center)>2.6||Math.abs(h.r-keep.r)>2){toast('Choisis le cercle correspondant à la consigne.');return;}
+   if(isBottom&&p.y>=h.center.y-4){toast('Clique sur la moitié supérieure à effacer.');return;}
+   if(!isBottom&&p.x<=h.center.x-4&&p.y<=h.center.y-4){toast('Clique sur une partie à effacer, pas sur le quart à conserver.');return;}
+   pushUndo();let index=shapes.findIndex(s=>s.id===h.id);
+   shapes[index]={...h,type:'arc',a0:keep.a0,a1:keep.a1,color:'#1769db'};
+   changed();status(isBottom?'Demi-cercle inférieur conservé.':'Quart de cercle supérieur gauche conservé.');return;
+  }
+  pushUndo();shapes=shapes.filter(s=>s.id!==h.id);active={tool:'eraser',pointerId:evt.pointerId};changed();status('Tracé effacé.');return;
+ }
+ if(tool==='select'){let h=hit(p);if(!h){status('Déplacer : sélectionne un tracé existant.');return;}active={tool:'select',pointerId:evt.pointerId,start:p,end:p,objectId:h.id,original:copy(h),moved:false};status('Déplacement en cours…');return;}
+ if(tool==='square'){if(pickingReference||!findReference()){
+ let h=hit(p,s=>s.type==='segment',4.5);if(h){selectedReference=h.id;pickingReference=false;renderReference();renderInspector();updateSquareStatus();toast('Droite d’appui sélectionnée.');}else{toast('Sélectionne d’abord un segment tracé à la règle.');}return;}
+ }
+ if(tool==='compass'&&settings.compassFixed){let r=settings.compassRadius*10;commit({type:'circle',center:snap,r,color:settings.color,width:settings.width});status('Cercle tracé : rayon '+fmt(r)+'.');return;}
+ active={tool,pointerId:evt.pointerId,start:snap,end:snap,points:[p],r:0,moved:false};
+ if(tool==='protractor'){active.b={x:snap.x+10,y:snap.y};active.c={x:snap.x+10*Math.cos(settings.angle*Math.PI/180),y:snap.y+10*Math.sin(settings.angle*Math.PI/180)};}
+ if(tool==='compass')active.r=0;
+ drawGuide(active);
+}
+function pointerMove(evt){let p=getPoint(evt);$('coordinates').textContent='x : '+fmt(p.x)+' · y : '+fmt(p.y);
+ if(!active||evt.pointerId!==active.pointerId){if(tool==='eraser'){cursorLayer.replaceChildren();el('circle',{cx:p.x,cy:p.y,r:3.5,stroke:'#bd6740',fill:'none','stroke-width':.5,'stroke-dasharray':'1.3 1.3'},cursorLayer);}return;}
+ if(active.tool==='eraser'){let h=hit(p);if(h){shapes=shapes.filter(s=>s.id!==h.id);changed();}return;}
+ if(active.tool==='select'){let dx=p.x-active.start.x,dy=p.y-active.start.y;active.moved=Math.hypot(dx,dy)>0.4;active.ghost=translated(active.original,dx,dy);drawGuide(active);return;}
+ if(active.tool==='pen'){if(dist(p,active.points[active.points.length-1])>.15)active.points.push(p);active.moved=true;active.end=p;}
+ else if(active.tool==='ruler'){let b=snappoint(p);if(evt.shiftKey){let angle=Math.atan2(b.y-active.start.y,b.x-active.start.x);let snapped=Math.round(angle/(Math.PI/4))*(Math.PI/4),d=dist(active.start,b);b={x:active.start.x+d*Math.cos(snapped),y:active.start.y+d*Math.sin(snapped)};}if(settings.rulerFixed){let d=Math.max(.001,dist(active.start,b));let length=settings.rulerLength*10;b={x:clamp(active.start.x+(b.x-active.start.x)/d*length,0,W),y:clamp(active.start.y+(b.y-active.start.y)/d*length,0,H)};}active.end=b;active.moved=dist(active.start,active.end)>1;}
+ else if(active.tool==='compass'){active.end=p;active.r=dist(active.start,p);active.moved=active.r>2;}
+ else if(active.tool==='square'){let r=findReference();if(!r)return;let b=endSquare(active.start,p,r);if(settings.squareFixed){let d=dist(active.start,b)||1,l=settings.squareLength*10;b={x:clamp(active.start.x+(b.x-active.start.x)/d*l,0,W),y:clamp(active.start.y+(b.y-active.start.y)/d*l,0,H)};}active.end=b;active.moved=dist(active.start,active.end)>1;}
+ else if(active.tool==='protractor'){let pp=snappoint(p);let aa=anglePreview(active.start,pp);active.b=aa.b;active.c=aa.c;active.end=pp;active.moved=dist(active.start,pp)>3;}
+ drawGuide(active);
+}
+function pointerUp(evt){if(!active||evt.pointerId!==active.pointerId)return;const cur=active;active=null;clearPreview();
+ if(cur.tool==='eraser'){changed();return;}
+ if(cur.tool==='select'){if(!cur.moved)return;const index=shapes.findIndex(s=>s.id===cur.objectId);if(index===-1)return;pushUndo();shapes[index]=cur.ghost;changed();status('Objet déplacé.');return;}
+ if(!cur.moved){return;}
+ if(cur.tool==='pen'){if(cur.points.length>1){commit({type:'pen',points:cur.points,color:settings.color,width:settings.width});status('Tracé au stylo ajouté.');}}
+ else if(cur.tool==='ruler'){commit({type:'segment',a:cur.start,b:cur.end,mode:'ruler',color:settings.color,width:settings.width});selectedReference=shapes[shapes.length-1].id;status('Segment tracé : '+fmt(dist(cur.start,cur.end))+'.');}
+ else if(cur.tool==='compass'){let r=Math.min(cur.r,300);commit({type:'circle',center:cur.start,r,color:settings.color,width:settings.width});status('Cercle tracé : rayon '+fmt(r)+'.');}
+ else if(cur.tool==='square'){commit({type:'segment',a:cur.start,b:cur.end,mode:'square',color:settings.color,width:settings.width});status('Perpendiculaire de '+fmt(dist(cur.start,cur.end))+' tracée.');}
+ else if(cur.tool==='protractor'){commit({type:'angle',origin:cur.start,b:cur.b,c:cur.c,angle:settings.angle,angleDirection:settings.angleDirection,color:settings.color,width:settings.width});status('Angle de '+settings.angle+'° construit.');}
+}
+function cancel(){if(active){active=null;clearPreview();status('Tracé interrompu.');}}
+svg.addEventListener('pointerdown',pointerDown);svg.addEventListener('pointermove',pointerMove);svg.addEventListener('pointerup',pointerUp);svg.addEventListener('pointercancel',cancel);svg.addEventListener('pointerleave',()=>{if(!active){cursorLayer.replaceChildren();$('coordinates').textContent='x : — · y : —';}});
+document.querySelectorAll('[data-tool]').forEach(btn=>btn.addEventListener('click',()=>selectTool(btn.dataset.tool)));
+$('undoBtn').addEventListener('click',undo);$('redoBtn').addEventListener('click',redo);
+$('gridSwitch').addEventListener('change',e=>{settings.grid=e.target.checked;$('gridVisual').setAttribute('visibility',settings.grid?'visible':'hidden');saveLocal();});
+$('marginSwitch').addEventListener('change',e=>{settings.margin=e.target.checked;$('marginVisual').setAttribute('visibility',settings.margin?'visible':'hidden');saveLocal();});
+$('snapSwitch').addEventListener('change',e=>{settings.snap=e.target.checked;saveLocal();toast(settings.snap?'Précision de 5 mm activée.':'Placement libre activé.');});
+function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),8000);}
+function exportSvgString(){const clone=svg.cloneNode(true);['missionGuideLayer','referenceLayer','previewLayer','cursorLayer'].forEach(id=>clone.querySelector('#'+id)?.remove());clone.setAttribute('width','297mm');clone.setAttribute('height','210mm');clone.setAttribute('xmlns',NS);clone.removeAttribute('class');return new XMLSerializer().serializeToString(clone);}
+$('svgBtn').addEventListener('click',()=>{download('platine-douche-CMIS.svg',new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'}));toast('Dessin vectoriel SVG téléchargé.');});
+$('pngBtn').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'})),img=new Image();img.onload=()=>{let canvas=document.createElement('canvas');canvas.width=3508;canvas.height=2480;let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.toBlob(blob=>{if(blob)download('platine-douche-CMIS.png',blob);else toast('Export PNG impossible : utilisez le SVG.');},'image/png');URL.revokeObjectURL(url);};img.onerror=()=>{URL.revokeObjectURL(url);toast('Export PNG impossible : utilisez le SVG.');};img.src=url;});
+$('saveBtn').addEventListener('click',()=>{const pack={version:2,format:'CMIS-PLATINE-MISSION2',shapes,settings,nextId,nextPoint,mission:{step:missionStep,passed:missionPassed,answers:missionAnswers}};download('projet-platine-douche-CMIS.json',new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));toast('Projet enregistré : vous pourrez le rouvrir.');});
+$('loadBtn').addEventListener('click',()=>$('fileLoad').click());
+$('fileLoad').addEventListener('change',async e=>{let file=e.target.files?.[0];e.target.value='';if(!file)return;try{if(file.size>3000000)throw Error('Projet trop volumineux');const raw=JSON.parse(await file.text());if(raw.format!=='CMIS-PLATINE-MISSION2'||!Array.isArray(raw.shapes)||raw.shapes.length>3000)throw Error('Format de projet non reconnu');
+ const clean=raw.shapes.map(s=>{if(!s||!['pen','segment','circle','arc','angle','point'].includes(s.type))throw Error('Tracé non reconnu');if(typeof s.color!=='string'||!colors.includes(s.color))s.color=colors[0];s.width=clamp(Number(s.width)||.65,.2,3);const good=p=>p&&finite(p.x)&&finite(p.y)&&Math.abs(p.x)<5000&&Math.abs(p.y)<5000;
+ if(s.type==='pen'){if(!Array.isArray(s.points)||s.points.length>25000||!s.points.every(good))throw Error('Points invalides');}
+ if(s.type==='segment'&&(!good(s.a)||!good(s.b)))throw Error('Segment invalide');
+ if((s.type==='circle'||s.type==='arc')&&(!good(s.center)||!finite(s.r)||s.r<=0||s.r>1000))throw Error('Cercle invalide');
+ if(s.type==='arc'&&(!finite(s.a0)||!finite(s.a1)||positiveSpan(s.a0,s.a1)<.05))throw Error('Arc invalide');
+ if(s.type==='angle'&&(!good(s.origin)||!good(s.b)||!good(s.c)||!finite(s.angle)))throw Error('Angle invalide');
+ if(s.type==='point'&&(!finite(s.x)||!finite(s.y)))throw Error('Point invalide');return s;});
+ if(shapes.length&&!confirm('Remplacer les tracés actuels par ceux du projet ouvert ?'))return;
+ pushUndo();shapes=clean;nextId=Math.max(1,...shapes.map(s=>Number(s.id)||0))+1;selectedReference=null;missionStep=clamp(Number(raw.mission?.step)||0,0,MISSION.length);missionPassed=Array.isArray(raw.mission?.passed)?raw.mission.passed:[];missionAnswers=raw.mission?.answers&&typeof raw.mission.answers==='object'?raw.mission.answers:{};changed();renderMission();toast('Projet chargé : '+shapes.length+' tracé(s).');
+ }catch(err){toast('Impossible d’ouvrir ce fichier de projet.');}});
+$('printBtn').addEventListener('click',()=>window.print());
+$('fullscreenBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else{await $('app').requestFullscreen();}}catch(e){toast('Plein écran indisponible sur ce navigateur.');}});
+$('clearBtn').addEventListener('click',()=>{if(!shapes.length){toast('La feuille est déjà vierge.');return;}if(!confirm('Effacer tous les tracés de cette feuille ? Cette action pourra être annulée.'))return;pushUndo();shapes=[];selectedReference=null;missionStep=0;missionPassed=[];missionAnswers={};changed();renderMission();toast('La feuille est vide.');});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){cancel();return;}
+ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
+ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
+ if(isEditableFocus()||e.metaKey||e.ctrlKey||e.altKey)return;
+ const keys={p:'pen',r:'ruler',c:'compass',e:'square',a:'protractor',m:'point',g:'eraser',v:'select'};let t=keys[e.key.toLowerCase()];if(t){e.preventDefault();selectTool(t);}
+});
+try{const saved=localStorage.getItem(STORE);if(saved){const d=JSON.parse(saved);if(Array.isArray(d.shapes))shapes=d.shapes;if(d.settings){for(let k of Object.keys(settings))if(k in d.settings)settings[k]=d.settings[k];}if(d.mission){missionStep=clamp(Number(d.mission.step)||0,0,20);missionPassed=Array.isArray(d.mission.passed)?d.mission.passed:[];missionAnswers=d.mission.answers&&typeof d.mission.answers==='object'?d.mission.answers:{}}nextId=Number(d.nextId)||1;nextPoint=Number(d.nextPoint)||0;}}catch(e){}
+$('gridSwitch').checked=!!settings.grid;$('marginSwitch').checked=!!settings.margin;$('snapSwitch').checked=!!settings.snap;
+$('gridVisual').setAttribute('visibility',settings.grid?'visible':'hidden');$('marginVisual').setAttribute('visibility',settings.margin?'visible':'hidden');
+if(!colors.includes(settings.color))settings.color=colors[0];
+render();selectTool('pen');historyUpdate();
+/* ────────────── Mission 2: platine double de douche (vue de face) ────────────── */
+const P={
+ A:{x:75,y:105},B:{x:225,y:105},M:{x:150,y:105},H:{x:150,y:75},
+ leftTop:{x:30,y:75},rightTop:{x:270,y:75},leftBottom:{x:30,y:135},rightBottom:{x:270,y:135},
+ F1:{x:45,y:105},F2:{x:255,y:105}
+};
+const MISSION=[
+ {phase:'1 · Construire les repères',title:'Placer le premier centre A',body:'Avec l’outil Point, place A sur le petit repère bleu visible au centre gauche de la feuille.',tool:'point',point:'A',hint:'Le repère bleu sert uniquement à positionner le dessin sur la feuille. Clique au centre du petit cercle bleu.',fail:'Place le point nommé A sur le repère bleu. Ne trace pas encore de segment.'},
+ {phase:'1 · Construire les repères',title:'Tracer un segment de 15 cm',body:'À partir de A, trace un segment horizontal de 15 cm vers la droite, à l’aide de la règle.',tool:'ruler',length:15,hint:'Commence exactement sur A, puis glisse vers la droite. La longueur de la règle peut être fixée à 15 cm.',fail:'Le segment doit partir de A, mesurer 15 cm et être horizontal.'},
+ {phase:'1 · Construire les repères',title:'Nommer le deuxième centre B',body:'Avec l’outil Point, place B à l’extrémité droite du segment précédent.',tool:'point',point:'B',hint:'Accroche le point à l’extrémité du segment AB, à 15 cm de A.',fail:'Le point B doit être placé et nommé à l’extrémité droite du segment.'},
+ {phase:'1 · Construire les repères',title:'Trouver le milieu M',body:'Place M au milieu du segment [AB]. Vérifie qu’il est à la même distance de A et de B.',tool:'point',point:'M',hint:'La longueur AB est de 15 cm. Son milieu est à 15 ÷ 2 = 7,5 cm de chaque extrémité.',fail:'M doit être au milieu de [AB] : à 7,5 cm de A et de B.'},
+ {phase:'2 · Construire les raccordements',title:'Premier cercle autour de A',body:'Avec le compas, trace un cercle de centre A et de rayon 1 cm.',tool:'compass',radius:1,hint:'Choisis un rayon de 1 cm, puis clique exactement sur le point A.',fail:'Le cercle recherché a pour centre A et pour rayon 1 cm.'},
+ {phase:'2 · Construire les raccordements',title:'Deuxième cercle autour de A',body:'Trace un second cercle de centre A et de rayon 0,6 cm. Les deux cercles doivent être concentriques.',tool:'compass',radius:.6,hint:'Concentriques signifie qu’ils ont le même centre. Garde A comme centre et change seulement le rayon.',fail:'Il manque le cercle intérieur de centre A et de rayon 0,6 cm.'},
+ {phase:'2 · Construire les raccordements',title:'Reproduire le cercle autour de B',body:'Avec le compas, trace un cercle de centre B et de rayon 1 cm.',tool:'compass',radius:1,hint:'Utilise la même ouverture du compas que pour le premier grand cercle, mais place la pointe sur B.',fail:'Il manque le grand cercle de centre B et de rayon 1 cm.'},
+ {phase:'2 · Construire les raccordements',title:'Compléter le raccordement B',body:'Trace un cercle de centre B et de rayon 0,6 cm.',tool:'compass',radius:.6,hint:'Tu dois maintenant voir deux couples de cercles concentriques, un autour de A et un autour de B.',fail:'Il manque le petit cercle de centre B et de rayon 0,6 cm.'},
+ {phase:'3 · Dessiner la platine',title:'Placer le repère supérieur H',body:'Place un point H exactement 3 cm au-dessus de M.',tool:'point',point:'H',hint:'Les points M et H sont alignés verticalement. Mesure 3 cm vers le haut à partir de M.',fail:'H doit se trouver sur la verticale de M, 3 cm plus haut.'},
+ {phase:'3 · Dessiner la platine',title:'Tracer le bord supérieur',body:'Trace un segment horizontal de 24 cm, centré sur H. Il doit dépasser de 12 cm de chaque côté de H.',tool:'ruler',length:24,hint:'Les deux extrémités se trouvent à 12 cm à gauche et à droite de H. Utilise le quadrillage pour te repérer.',fail:'Le bord supérieur doit mesurer 24 cm et avoir H pour milieu.'},
+ {phase:'3 · Dessiner la platine',title:'Tracer le bord inférieur',body:'Trace un autre segment horizontal de 24 cm, exactement 6 cm sous le bord supérieur.',tool:'ruler',length:24,hint:'Les deux grands bords doivent être parallèles, de même longueur et alignés aux extrémités.',fail:'Le bord inférieur doit mesurer 24 cm, être parallèle au premier et situé 6 cm plus bas.'},
+ {phase:'3 · Dessiner la platine',title:'Fermer le côté gauche',body:'À l’aide de l’équerre, trace le côté gauche de 6 cm, perpendiculaire aux grands bords.',tool:'square',length:6,hint:'Commence au coin supérieur gauche, puis trace verticalement vers le bas jusqu’au coin inférieur gauche.',fail:'Le côté gauche doit relier les deux extrémités gauches : 6 cm à la verticale.'},
+ {phase:'3 · Dessiner la platine',title:'Fermer le côté droit',body:'Trace le dernier côté de 6 cm avec l’équerre pour obtenir un rectangle.',tool:'square',length:6,hint:'Relie le coin supérieur droit au coin inférieur droit. Vérifie que les quatre angles sont droits.',fail:'Il manque le côté droit de 6 cm. Vérifie que ton contour est rectangulaire.'},
+ {phase:'4 · Positionner les fixations',title:'Placer le centre F1',body:'Sur l’horizontale passant par M, place F1 à 1,5 cm du bord gauche de la platine.',tool:'point',point:'F1',hint:'Pars du bord gauche et avance de 1,5 cm vers l’intérieur du rectangle, à la même hauteur que A, M et B.',fail:'F1 doit se trouver à 1,5 cm du bord gauche, sur l’axe horizontal du rectangle.'},
+ {phase:'4 · Positionner les fixations',title:'Placer le centre F2',body:'Place F2 à 1,5 cm du bord droit, sur le même axe horizontal que F1.',tool:'point',point:'F2',hint:'Mesure 1,5 cm vers la gauche depuis le bord droit. F1 et F2 doivent avoir la même hauteur.',fail:'F2 doit être à 1,5 cm du bord droit et sur la même horizontale que F1.'},
+ {phase:'4 · Positionner les fixations',title:'Tracer le premier trou',body:'Avec le compas, trace le trou de fixation de centre F1 et de rayon 0,25 cm.',tool:'compass',radius:.25,hint:'0,25 cm = 2,5 mm. Règle le rayon du compas sur 0,25 cm, puis clique sur F1.',fail:'Le trou gauche doit être centré sur F1, avec un rayon de 0,25 cm.'},
+ {phase:'4 · Positionner les fixations',title:'Tracer le second trou',body:'Reproduis le même trou de fixation autour de F2.',tool:'compass',radius:.25,hint:'Le deuxième trou doit avoir exactement le même diamètre que le premier.',fail:'Le trou droit doit être centré sur F2 et avoir un rayon de 0,25 cm.'},
+ {phase:'5 · Contrôler les dimensions',title:'Vérifier l’entraxe des raccordements',body:'La distance entre les centres A et B est de 15 cm. Quelle est cette distance en millimètres ?',answerType:'number',unit:'mm',hint:'1 cm = 10 mm. Il faut multiplier la valeur en centimètres par 10.',fail:'Convertis bien 15 cm en millimètres, sans confondre avec les rayons.'},
+ {phase:'5 · Contrôler les dimensions',title:'Calculer le diamètre extérieur',body:'Chaque grand cercle a un rayon de 1 cm. Quel est son diamètre en millimètres ?',answerType:'number',unit:'mm',hint:'Un diamètre est égal à deux rayons. Convertis ensuite les centimètres en millimètres.',fail:'Pense à doubler le rayon avant de convertir le diamètre en millimètres.'},
+ {phase:'5 · Contrôler les dimensions',title:'Contrôler les trous de fixation',body:'Calcule la distance entre les centres F1 et F2. Donne ta réponse en millimètres.',answerType:'number',unit:'mm',hint:'La platine mesure 24 cm. Il faut retirer 1,5 cm de chaque côté : 24 − 1,5 − 1,5. Convertis ensuite en millimètres.',fail:'Soustrais les deux retraits de 1,5 cm à la longueur de 24 cm, puis convertis.'}
+];
+const near=(a,b,t=2.7)=>!!a&&!!b&&dist(a,b)<=t;
+const pAt=(label,position,t=2.8)=>shapes.some(s=>s.type==='point'&&String(s.label||'').toUpperCase()===label&&near({x:s.x,y:s.y},position,t));
+const sAt=(a,b,t=3)=>shapes.some(s=>s.type==='segment'&&((near(s.a,a,t)&&near(s.b,b,t))||(near(s.a,b,t)&&near(s.b,a,t))));
+const cAt=(center,r,t=2.7)=>shapes.some(s=>s.type==='circle'&&near(s.center,center,t)&&Math.abs(s.r-r)<1.4);
+const allGeometry=()=>pAt('A',P.A)&&pAt('B',P.B)&&pAt('M',P.M)&&pAt('H',P.H)&&pAt('F1',P.F1)&&pAt('F2',P.F2)&&sAt(P.A,P.B)&&cAt(P.A,10)&&cAt(P.A,6)&&cAt(P.B,10)&&cAt(P.B,6)&&sAt(P.leftTop,P.rightTop)&&sAt(P.leftBottom,P.rightBottom)&&sAt(P.leftTop,P.leftBottom)&&sAt(P.rightTop,P.rightBottom)&&cAt(P.F1,2.5)&&cAt(P.F2,2.5);
+function numberOk(i,target){let value=String(missionAnswers[i]??'').trim().replace(',','.').replace(/\s/g,'');if(value==='')return false;let n=Number(value);return finite(n)&&Math.abs(n-target)<.055;}
+function stepIsCorrect(i){
+ switch(i){
+ case 0:return pAt('A',P.A,3.8);
+ case 1:return pAt('A',P.A,3.8)&&sAt(P.A,P.B);
+ case 2:return sAt(P.A,P.B)&&pAt('B',P.B);
+ case 3:return pAt('M',P.M)&&pAt('A',P.A)&&pAt('B',P.B);
+ case 4:return cAt(P.A,10);
+ case 5:return cAt(P.A,10)&&cAt(P.A,6);
+ case 6:return cAt(P.B,10)&&cAt(P.A,10)&&cAt(P.A,6);
+ case 7:return cAt(P.B,10)&&cAt(P.B,6);
+ case 8:return pAt('H',P.H)&&pAt('M',P.M);
+ case 9:return pAt('H',P.H)&&sAt(P.leftTop,P.rightTop);
+ case 10:return sAt(P.leftTop,P.rightTop)&&sAt(P.leftBottom,P.rightBottom);
+ case 11:return sAt(P.leftTop,P.leftBottom)&&sAt(P.leftTop,P.rightTop);
+ case 12:return sAt(P.rightTop,P.rightBottom)&&sAt(P.leftTop,P.leftBottom);
+ case 13:return pAt('F1',P.F1)&&sAt(P.leftTop,P.leftBottom);
+ case 14:return pAt('F1',P.F1)&&pAt('F2',P.F2);
+ case 15:return cAt(P.F1,2.5)&&pAt('F1',P.F1);
+ case 16:return cAt(P.F2,2.5)&&cAt(P.F1,2.5)&&pAt('F2',P.F2);
+ case 17:return numberOk(17,150)&&allGeometry();
+ case 18:return numberOk(18,20)&&allGeometry();
+ case 19:return numberOk(19,210)&&allGeometry();
+ }
+ return false;
+}
+function renderStarterGuide(){
+ const g=$('missionGuideLayer');g.replaceChildren();
+ if(missionStep!==0||pAt('A',P.A,3.8))return;
+ el('circle',{cx:P.A.x,cy:P.A.y,r:4.2,fill:'#e5f1ff',stroke:'#1769db','stroke-width':.65,'stroke-dasharray':'1.6 1.1'},g);
+ el('circle',{cx:P.A.x,cy:P.A.y,r:1.25,fill:'#1769db'},g);
+ const t=el('text',{x:P.A.x+6,y:P.A.y-5,'font-size':3.9,fill:'#1769db','font-family':'Arial,sans-serif','font-weight':'700'},g);t.textContent='Départ';
+}
+function prepareTool(i=missionStep){
+ const s=MISSION[i];if(!s||!s.tool)return;
+ settings.snap=true;$('snapSwitch').checked=true;
+ if(s.tool==='point'){settings.pointLabel=s.point;settings.color='#1769db';}
+ if(s.tool==='compass'){
+  settings.compassFixed=true;settings.compassRadius=s.radius;settings.color=(i===5||i===7)?'#5c8cb6':i>=15?'#253a57':'#1769db';settings.width=.65;
+ }
+ if(s.tool==='ruler'){
+  settings.rulerFixed=true;settings.rulerLength=s.length;
+  settings.color=i===1?'#8199b8':'#1769db';settings.width=.8;
+ }
+ if(s.tool==='square'){
+  settings.squareFixed=true;settings.squareLength=s.length;settings.color='#1769db';settings.width=.8;
+  const top=shapes.find(t=>t.type==='segment'&&((near(t.a,P.leftTop)&&near(t.b,P.rightTop))||(near(t.a,P.rightTop)&&near(t.b,P.leftTop))));
+  if(top)selectedReference=top.id;
+ }
+ selectTool(s.tool);renderInspector();saveLocal();
+ $('toolSettingsBox').open=true;
+ toast(s.tool==='point'?'Outil Point prêt : '+s.point+'.':'Outil préparé. Réalise le tracé sur ta feuille.');
+}
+function renderMission(){
+ const finished=missionStep>=MISSION.length;
+ $('missionCount').textContent=finished?'20 / 20':(missionStep+1)+' / 20';
+ $('missionFill').style.width=((finished?MISSION.length:missionStep)/MISSION.length*100)+'%';
+ $('missionHint').classList.add('hidden');$('missionHintBtn').textContent='+ Afficher un indice';missionHintOpen=false;
+ if(finished){
+  $('missionPhase').textContent='Mission terminée';
+  $('missionTitle').textContent='Platine construite !';
+  $('missionInstruction').textContent='Tu as réalisé une vue de face simplifiée avec des cercles concentriques, des parallèles, des perpendiculaires et deux fixations.';
+  $('missionToolRow').innerHTML='<span class="mission-tool">Entraxe : 150 mm</span><span class="mission-tool">Fixations : 210 mm</span>';
+  $('missionAnswer').innerHTML='<div class="mission-finished"><h2>✓ Les 20 consignes sont validées</h2><p>Tu peux enregistrer ton projet et exporter ta feuille en PNG ou SVG.</p><p><strong>Important :</strong> ce dessin est un modèle de géométrie pédagogique, et non un plan de pose normalisé.</p></div>';
+  $('missionHintBtn').classList.add('hidden');$('missionValidate').classList.add('hidden');$('missionFeedback').innerHTML='';
+  $('missionPrevious').disabled=false;renderStarterGuide();return;
+ }
+ $('missionHintBtn').classList.remove('hidden');$('missionValidate').classList.remove('hidden');
+ const s=MISSION[missionStep];
+ $('missionPhase').textContent=s.phase;
+ $('missionTitle').textContent=s.title;
+ $('missionInstruction').textContent=s.body;
+ $('missionToolRow').innerHTML=s.tool?'<span class="mission-tool">'+htmlEsc(nameMap[s.tool])+'</span><button type="button" class="mission-prepare" id="missionPrepare">Préparer cet outil</button>':'<span class="mission-tool">Calcul et contrôle</span>';
+ $('missionPrepare')?.addEventListener('click',()=>prepareTool());
+ $('missionHint').textContent=s.hint;
+ if(s.answerType==='number'){
+  $('missionAnswer').innerHTML='<div class="mission-answer"><label for="missionInput">Réponse en millimètres</label><input id="missionInput" type="text" inputmode="decimal" autocomplete="off" placeholder="Nombre" value="'+htmlEsc(missionAnswers[missionStep]??'')+'"><span class="unit">mm</span></div>';
+  $('missionInput').addEventListener('input',e=>{missionAnswers[missionStep]=e.target.value;missionPassed[missionStep]=false;const btn=$('missionValidate');btn.textContent='Vérifier ma réponse';btn.classList.remove('done');$('missionFeedback').innerHTML='';saveLocal();});
+ }else{$('missionAnswer').innerHTML='';}
+ const already=!!missionPassed[missionStep];
+ $('missionValidate').textContent=already?'Consigne suivante →':'Vérifier '+(s.answerType?'ma réponse':'mon tracé');
+ $('missionValidate').classList.toggle('done',already);
+ $('missionFeedback').innerHTML=already?'<div class="mission-feedback success">✓ Consigne validée, passe à la suite.</div>':'';
+ $('missionPrevious').disabled=missionStep===0;
+ renderStarterGuide();
+}
+function refreshMissionAfterDrawing(){
+ renderStarterGuide();
+ if(missionStep<MISSION.length&&missionPassed[missionStep]){
+  missionPassed[missionStep]=false;
+  $('missionValidate').classList.remove('done');
+  $('missionValidate').textContent='Vérifier '+(MISSION[missionStep].answerType?'ma réponse':'mon tracé');
+  $('missionFeedback').innerHTML='';
+ }
+}
+function pointDiagnostic(i){
+ const lab=MISSION[i].point;
+ const s=shapes.slice().reverse().find(x=>x.type==='point'&&String(x.label||'').toUpperCase()===lab);
+ if(!s)return 'Le point '+lab+' n’a pas été trouvé. Vérifie le nom dans les réglages de l’outil Point.';
+ const target={0:P.A,2:P.B,3:P.M,8:P.H,13:P.F1,14:P.F2}[i];
+ if(!target)return MISSION[i].fail;
+ let dx=target.x-s.x,dy=target.y-s.y;
+ if(Math.hypot(dx,dy)<3)return MISSION[i].fail;
+ let h=Math.abs(dx)>3?(dx>0?'vers la droite':'vers la gauche'):'';
+ let v=Math.abs(dy)>3?(dy>0?'vers le bas':'vers le haut'):'';
+ const parts=[h,v].filter(Boolean).join(' et ');
+ return 'Le point '+lab+' est décalé. Déplace-le '+parts+' d’environ '+fmt(Math.hypot(dx,dy))+', ou efface-le et replace-le.';
+}
+function diagnostic(i){
+ if([0,2,3,8,13,14].includes(i))return pointDiagnostic(i);
+ const s=MISSION[i];
+ if(s.tool==='compass'){
+  const center=i===4||i===5?P.A:i===6||i===7?P.B:i===15?P.F1:P.F2;
+  const exact=shapes.filter(x=>x.type==='circle'&&near(x.center,center,4));
+  if(exact.length){const closest=exact.slice().sort((a,b)=>Math.abs(a.r-s.radius*10)-Math.abs(b.r-s.radius*10))[0];return 'Cercle repéré près du bon centre, mais son rayon est de '+fmt(closest.r)+' au lieu de '+String(s.radius).replace('.',',')+' cm.';}
+ }
+ return s.fail;
+}
+function validateMission(){
+ if(missionStep>=MISSION.length)return;
+ const s=MISSION[missionStep];
+ if(missionPassed[missionStep]){
+  if(!stepIsCorrect(missionStep)){
+   missionPassed[missionStep]=false;renderMission();$('missionFeedback').innerHTML='<div class="mission-feedback">Le dessin a changé. Vérifie à nouveau la consigne.</div>';return;
+  }
+  missionStep++;saveLocal();renderMission();return;
+ }
+ if(stepIsCorrect(missionStep)){
+  missionPassed[missionStep]=true;saveLocal();
+  $('missionValidate').classList.add('done');$('missionValidate').textContent='Consigne suivante →';
+  $('missionFeedback').innerHTML='<div class="mission-feedback success">✓ Construction correcte. Tu peux passer à la consigne suivante.</div>';
+ }else{
+  $('missionFeedback').innerHTML='<div class="mission-feedback">'+htmlEsc(diagnostic(missionStep))+'</div>';
+ }
+}
+$('missionValidate').addEventListener('click',validateMission);
+$('missionHintBtn').addEventListener('click',()=>{missionHintOpen=!missionHintOpen;$('missionHint').classList.toggle('hidden',!missionHintOpen);$('missionHintBtn').textContent=missionHintOpen?'− Masquer l’indice':'+ Afficher un indice';});
+$('missionPrevious').addEventListener('click',()=>{if(missionStep>0){missionStep--;saveLocal();renderMission();}});
+$('missionRestart').addEventListener('click',()=>{
+ if(!confirm('Recommencer la mission ? Tous les tracés et les validations seront effacés.'))return;
+ pushUndo();shapes=[];selectedReference=null;missionStep=0;missionPassed=[];missionAnswers={};
+ settings.grid=true;$('gridSwitch').checked=true;$('gridVisual').setAttribute('visibility','visible');
+ changed();renderMission();toast('Nouvelle mission prête.');
+});
+renderMission();
+
+})();
+</script>
+</div>
+</body>
+</html>
