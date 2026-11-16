@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2f6fc">
-<title>Mission 2 — Platine de douche | Atelier de géométrie · CMIS</title>
+<title>Mission 3 — Contourner une gaine | Atelier de géométrie · CMIS</title>
 <style>
 :root{--blue:#1769db;--blue-dark:#1055bd;--ink:#193954;--muted:#71859b;--line:#d9e5f3;--blue-pale:#eaf3ff;--surface:#fff;--bg:#f1f5fb;--focus:#e3f0ff;--shadow:0 12px 38px rgba(34,66,109,.09)}
 *{box-sizing:border-box}
@@ -138,6 +138,7 @@ button:disabled{opacity:.38;cursor:default}
 .tool-settings-inner .inspector-bottom{margin-top:12px}
 @keyframes mission-in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .mission-mode-note{font-size:11px;color:#879cb1;margin:9px 0 0}
+.mission-select{width:100%;min-height:40px;border:1px solid #cbdced;border-radius:9px;background:#fff;color:#24466b;padding:7px 9px;font-size:13px;line-height:1.4;font-family:inherit}
 .app:fullscreen{height:100vh;min-height:0;width:100vw}
 .inspector-options [data-erase]{font-size:10px;padding:9px 3px;white-space:normal;line-height:1.25}
 @media(max-width:1240px){.layout{grid-template-columns:76px minmax(0,1fr) 310px;gap:9px;padding:10px}.mission-panel{padding:13px}.tool-settings-inner{padding:13px}.mission-title{font-size:17px}.mission-instruction{font-size:14px}}
@@ -180,7 +181,7 @@ button:disabled{opacity:.38;cursor:default}
  </nav>
  <section class="workarea">
   <div class="workspace-head">
-   <div class="worktitle"><strong>Mission 2 · Platine de douche</strong><span class="pill">A4 paysage · 29,7 × 21 cm</span></div>
+   <div class="worktitle"><strong>Mission 3 · Canalisation</strong><span class="pill">A4 paysage · 29,7 × 21 cm</span></div>
    <div class="chips">
      <label class="switch" title="Afficher un quadrillage tous les centimètres"><input id="gridSwitch" type="checkbox"><span>Quadrillage</span></label>
      <label class="switch" title="Afficher une marge à 1 cm du bord de la feuille"><input id="marginSwitch" type="checkbox"><span>Marge 1 cm</span></label>
@@ -206,7 +207,7 @@ button:disabled{opacity:.38;cursor:default}
  </section>
  <aside class="inspector" aria-label="Mission de construction et réglages des outils">
    <section class="mission-panel" id="missionPanel" aria-label="Consigne progressive">
-    <div class="mission-top"><span class="mission-kicker">MISSION 2 · PLATINE DE DOUCHE</span><span class="mission-count" id="missionCount">1 / 20</span></div>
+    <div class="mission-top"><span class="mission-kicker">MISSION 3 · CONTOURNER UNE GAINE</span><span class="mission-count" id="missionCount">1 / 20</span></div>
     <div class="mission-track"><div class="mission-fill" id="missionFill"></div></div>
     <div class="mission-phase" id="missionPhase"></div>
     <h2 class="mission-title" id="missionTitle"></h2>
@@ -234,14 +235,14 @@ button:disabled{opacity:.38;cursor:default}
 <script>
 (()=>{
 'use strict';
-const W=297,H=210,NS='http://www.w3.org/2000/svg',STORE='cmis_platine_douche_mission2_v1';
+const W=297,H=210,NS='http://www.w3.org/2000/svg',STORE='cmis_contournement_gaine_mission3_v1';
 const $=id=>document.getElementById(id);
 const svg=$('sheet'), shapesLayer=$('shapesLayer'), previewLayer=$('previewLayer'), referenceLayer=$('referenceLayer'), cursorLayer=$('cursorLayer');
 const nameMap={pen:'Stylo',ruler:'Règle',compass:'Compas',square:'Équerre',protractor:'Rapporteur',point:'Point',eraser:'Gomme',select:'Déplacer'};
 const descriptions={
  pen:'Dessine directement sur la feuille, comme avec un stylo. Maintiens et déplace la souris ou ton doigt.',
  ruler:'Trace un segment parfaitement droit : pars d’un point, puis glisse jusqu’à l’extrémité. La longueur apparaît en centimètres, pendant le tracé.',
- compass:'Place la pointe au centre et écarte le compas en glissant pour choisir le rayon. Tu peux aussi fixer une ouverture précise.',
+ compass:'Trace un cercle, ou construis un arc de cercle en choisissant successivement son centre, son point de départ et son point d’arrivée.',
  square:'Trace une perpendiculaire à un segment existant. Sélectionne une droite d’appui, puis glisse pour tracer à 90°.',
  protractor:'Construis un angle : choisis sa mesure, puis fais glisser depuis le sommet pour déterminer la direction de départ.',
  point:'Clique sur la feuille pour placer un point et lui donner un nom (A, B, C, O…).',
@@ -249,13 +250,14 @@ const descriptions={
  select:'Clique sur un tracé, puis déplace-le en faisant glisser la souris ou ton doigt.'
 };
 const colors=['#193954','#20262e','#1769db','#bd6740','#18866a','#93a5b7'];
-let shapes=[], tool='pen', active=null, selectedReference=null, pickingReference=false;
+let shapes=[], tool='pen', active=null, selectedReference=null, pickingReference=false,arcDraft=null;
 let undoStack=[],redoStack=[],nextId=1, nextPoint=0;
-let settings={grid:true,margin:false,snap:true,width:0.65,color:colors[0],compassFixed:false,compassRadius:2,rulerFixed:false,rulerLength:6,squareFixed:false,squareLength:9,eraserMode:'whole',angle:45,angleDirection:1,pointLabel:'A'};
+let settings={grid:true,margin:false,snap:true,width:0.65,color:colors[0],compassMode:'circle',compassFixed:false,compassRadius:2,rulerFixed:false,rulerLength:6,squareFixed:false,squareLength:9,eraserMode:'whole',angle:45,angleDirection:1,pointLabel:'A'};
 let missionStep=0,missionPassed=[],missionAnswers={},missionHintOpen=false;
 const segmentTypes=['segment'];
 const TAU=2*Math.PI;
 function positiveSpan(a,b){return ((b-a)%TAU+TAU)%TAU;}
+function actualArcSpan(s){return s.sweep===0?positiveSpan(s.a1,s.a0):positiveSpan(s.a0,s.a1);}
 function arcEnd(s,ang){return{x:s.center.x+s.r*Math.cos(ang),y:s.center.y+s.r*Math.sin(ang)};}
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -291,7 +293,7 @@ function drawShape(s,layer=shapesLayer){const common={fill:'none',stroke:s.color
  if(s.type==='pen'){let d=s.points.map((p,i)=>(i?'L':'M')+p.x.toFixed(3)+' '+p.y.toFixed(3)).join(' ');el('path',{...common,d},g);}
  else if(s.type==='segment'){el('line',{...common,x1:s.a.x,y1:s.a.y,x2:s.b.x,y2:s.b.y},g);}
  else if(s.type==='circle'){el('circle',{...common,cx:s.center.x,cy:s.center.y,r:s.r},g);el('circle',{cx:s.center.x,cy:s.center.y,r:.8,fill:s.color||settings.color},g);}
- else if(s.type==='arc'){const a=arcEnd(s,s.a0),b=arcEnd(s,s.a1),span=positiveSpan(s.a0,s.a1);el('path',{...common,d:`M ${a.x} ${a.y} A ${s.r} ${s.r} 0 ${span>Math.PI+1e-5?1:0} 1 ${b.x} ${b.y}`},g);}
+ else if(s.type==='arc'){const a=arcEnd(s,s.a0),b=arcEnd(s,s.a1),span=actualArcSpan(s);el('path',{...common,d:`M ${a.x} ${a.y} A ${s.r} ${s.r} 0 ${span>Math.PI+1e-5?1:0} ${s.sweep===0?0:1} ${b.x} ${b.y}`},g);}
  else if(s.type==='angle'){el('line',{...common,x1:s.origin.x,y1:s.origin.y,x2:s.b.x,y2:s.b.y},g);el('line',{...common,x1:s.origin.x,y1:s.origin.y,x2:s.c.x,y2:s.c.y},g);
   let aa=Math.atan2(s.b.y-s.origin.y,s.b.x-s.origin.x);let ra=Math.min(15,dist(s.origin,s.b)*.33);let direction=s.angleDirection||1;
   let ep={x:s.origin.x+ra*Math.cos(aa+direction*s.angle*Math.PI/180),y:s.origin.y+ra*Math.sin(aa+direction*s.angle*Math.PI/180)};
@@ -300,7 +302,7 @@ function drawShape(s,layer=shapesLayer){const common={fill:'none',stroke:s.color
   let mm={x:s.origin.x+(ra+6)*Math.cos(aa+direction*s.angle*Math.PI/360),y:s.origin.y+(ra+6)*Math.sin(aa+direction*s.angle*Math.PI/360)};
   let text=el('text',{x:mm.x,y:mm.y,'font-size':4,'text-anchor':'middle',fill:s.color||settings.color,'font-family':'Arial,sans-serif','font-weight':'700'},g);text.textContent=s.angle+'°';
  }
- else if(s.type==='point'){el('circle',{cx:s.x,cy:s.y,r:1.1,fill:s.color||settings.color},g);let t=el('text',{x:s.x+2,y:s.y-2.5,'font-size':4.2,'font-family':'Arial,sans-serif','font-weight':'700',fill:s.color||settings.color},g);t.textContent=s.label||'';}
+ else if(s.type==='point'){el('circle',{cx:s.x,cy:s.y,r:1.1,fill:s.color||settings.color},g);let t=el('text',{x:s.x+2,y:s.y-2.5,'font-size':4.2,'font-family':'Arial,sans-serif','font-weight':'700',fill:s.color||settings.color},g);t.textContent=s.label==='O1'?'O₁':s.label==='O2'?'O₂':s.label||'';}
  return g;}
 function render(){shapesLayer.replaceChildren();shapes.forEach(s=>drawShape(s));renderReference();}
 function findReference(){const x=shapes.find(s=>s.id===selectedReference&&s.type==='segment');if(x)return x;const last=shapes.slice().reverse().find(s=>s.type==='segment');selectedReference=last?.id??null;return last||null;}
@@ -330,15 +332,15 @@ function drawGuide(activeMove){previewLayer.replaceChildren();if(!activeMove)ret
 }
 function distanceToSegment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y;let t=dx*dx+dy*dy===0?0:clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
 function hitDistance(p,s){if(s.type==='circle')return Math.abs(dist(p,s.center)-s.r);
- if(s.type==='arc'){let theta=((Math.atan2(p.y-s.center.y,p.x-s.center.x)%TAU)+TAU)%TAU,from=((s.a0%TAU)+TAU)%TAU,span=positiveSpan(s.a0,s.a1),rel=positiveSpan(from,theta);if(rel<=span+.015)return Math.abs(dist(p,s.center)-s.r);return Math.min(dist(p,arcEnd(s,s.a0)),dist(p,arcEnd(s,s.a1)));}
+ if(s.type==='arc'){let theta=((Math.atan2(p.y-s.center.y,p.x-s.center.x)%TAU)+TAU)%TAU,from=((s.a0%TAU)+TAU)%TAU,span=actualArcSpan(s),rel=s.sweep===0?positiveSpan(theta,from):positiveSpan(from,theta);if(rel<=span+.015)return Math.abs(dist(p,s.center)-s.r);return Math.min(dist(p,arcEnd(s,s.a0)),dist(p,arcEnd(s,s.a1)));}
  if(s.type==='segment')return distanceToSegment(p,s.a,s.b);
  if(s.type==='pen'){let m=Infinity;for(let i=1;i<s.points.length;i++)m=Math.min(m,distanceToSegment(p,s.points[i-1],s.points[i]));return s.points.length===1?dist(p,s.points[0]):m;}
  if(s.type==='point')return dist(p,{x:s.x,y:s.y});
  if(s.type==='angle')return Math.min(distanceToSegment(p,s.origin,s.b),distanceToSegment(p,s.origin,s.c));return Infinity;}
 function hit(p,predicate=()=>true,tol=3.5){let best=null,d=tol;for(let i=shapes.length-1;i>=0;i--){let s=shapes[i];if(!predicate(s))continue;let z=hitDistance(p,s);if(z<=d){d=z;best=s;}}return best;}
 function updateSquareStatus(){let r=findReference();if(!r)status('Équerre : trace d’abord une droite avec la règle.');else status(pickingReference?'Équerre : clique sur la droite qui servira d’appui.':'Équerre : glisse pour tracer une perpendiculaire à la droite surlignée.');}
-function selectTool(next){if(active)return;tool=next;pickingReference=next==='square'&&!findReference();$('sheet').setAttribute('class','tool-'+next);document.querySelectorAll('[data-tool]').forEach(b=>{let a=b.dataset.tool===tool;b.classList.toggle('active',a);b.setAttribute('aria-pressed',String(a));});renderReference();renderInspector();
- let help={pen:'Stylo : dessine librement sur la feuille.',ruler:'Règle : glisse pour tracer un segment droit.',compass:'Compas : place le centre puis glisse pour ouvrir le rayon.',square:'',protractor:'Rapporteur : fais glisser pour construire un angle.',point:'Point : clique pour marquer un point.',eraser:'Gomme : touche un tracé pour le supprimer.',select:'Déplacer : fais glisser un tracé pour le repositionner.'};
+function selectTool(next){if(active)return;arcDraft=null;clearPreview();tool=next;pickingReference=next==='square'&&!findReference();$('sheet').setAttribute('class','tool-'+next);document.querySelectorAll('[data-tool]').forEach(b=>{let a=b.dataset.tool===tool;b.classList.toggle('active',a);b.setAttribute('aria-pressed',String(a));});renderReference();renderInspector();
+ let help={pen:'Stylo : dessine librement sur la feuille.',ruler:'Règle : glisse pour tracer un segment droit.',compass:'Compas : place le centre du cercle ou de l’arc.',square:'',protractor:'Rapporteur : fais glisser pour construire un angle.',point:'Point : clique pour marquer un point.',eraser:'Gomme : touche un tracé pour le supprimer.',select:'Déplacer : fais glisser un tracé pour le repositionner.'};
  if(next==='square')updateSquareStatus();else status(help[next]);}
 function renderInspector(){const icon=document.querySelector(`[data-tool="${tool}"] svg`);$('inspectorIcon').innerHTML=icon?icon.outerHTML:'';$('inspectorTitle').textContent=nameMap[tool];$('inspectorDesc').textContent=descriptions[tool];let opt='';
  if(['pen','ruler','compass','square','protractor','point'].includes(tool)){
@@ -350,8 +352,9 @@ function renderInspector(){const icon=document.querySelector(`[data-tool="${tool
  opt+='<div class="numberrow" style="margin-top:10px"><input class="numinput" id="rulerLength" type="number" min="0.2" max="26" step="0.1" value="'+settings.rulerLength+'"><span class="unit">cm</span></div>';
  }
  if(tool==='compass'){
+ opt+='<div class="optiontitle">Type de construction</div><div class="segmented"><button type="button" class="seg '+(settings.compassMode==='circle'?'active':'')+'" data-compass-mode="circle">Cercle</button><button type="button" class="seg '+(settings.compassMode==='arc'?'active':'')+'" data-compass-mode="arc">Arc de cercle</button></div>';
  opt+='<div class="optiontitle">Ouverture du compas</div><label class="inlinecheck"><input id="fixedCompass" type="checkbox" '+(settings.compassFixed?'checked':'')+'> Utiliser un rayon précis</label>';
- opt+='<div class="numberrow" style="margin-top:12px"><input class="numinput" id="compassRadius" type="number" step="0.05" min="0.1" max="14" value="'+settings.compassRadius+'"><span class="unit">cm de rayon</span></div><div class="helper">'+(settings.compassFixed?'Clique sur la feuille pour créer directement le cercle.':'Ou laisse le rayon libre et déplace le compas en glissant.')+'</div>';
+ opt+='<div class="numberrow" style="margin-top:12px"><input class="numinput" id="compassRadius" type="number" step="0.05" min="0.1" max="14" value="'+settings.compassRadius+'"><span class="unit">cm de rayon</span></div><div class="helper">'+(settings.compassMode==='arc'?'Pour un arc : clique sur le centre, puis le départ et enfin l’arrivée.':'Choisis le centre et le rayon avec la souris.')+'</div>';
  }
  if(tool==='square'){
  let r=findReference();opt+='<div class="optiontitle">Droite d’appui</div><div class="helper">'+(r?'Une droite est sélectionnée en pointillés orange.':'Aucune droite disponible : trace d’abord un segment à la règle.')+'</div><button class="smallblue" id="changeReference" type="button">'+(r?'Choisir une autre droite':'Choisir une droite')+'</button>';
@@ -375,6 +378,7 @@ function renderInspector(){const icon=document.querySelector(`[data-tool="${tool
  $('fixedSquare')?.addEventListener('change',e=>{settings.squareFixed=e.target.checked;renderInspector();saveLocal();});
  $('squareLength')?.addEventListener('change',e=>{settings.squareLength=clamp(Number(e.target.value)||9,.2,20);renderInspector();saveLocal();});
  document.querySelectorAll('[data-erase]').forEach(b=>b.addEventListener('click',()=>{settings.eraserMode=b.dataset.erase;renderInspector();saveLocal();}));
+ document.querySelectorAll('[data-compass-mode]').forEach(b=>b.addEventListener('click',()=>{settings.compassMode=b.dataset.compassMode;arcDraft=null;clearPreview();renderInspector();saveLocal();}));
  $('fixedCompass')?.addEventListener('change',e=>{settings.compassFixed=e.target.checked;renderInspector();saveLocal();});
  $('compassRadius')?.addEventListener('change',e=>{settings.compassRadius=clamp(Number(e.target.value)||2,.1,14);renderInspector();saveLocal();});
  $('changeReference')?.addEventListener('click',()=>{pickingReference=true;status('Équerre : clique sur le segment qui servira d’appui.');toast('Choisis une droite déjà dessinée.');});
@@ -386,13 +390,49 @@ function renderInspector(){const icon=document.querySelector(`[data-tool="${tool
 function translated(s,dx,dy){let out=copy(s);let move=p=>{p.x=clamp(p.x+dx,0,W);p.y=clamp(p.y+dy,0,H);};if(s.type==='pen')out.points.forEach(move);else if(s.type==='circle'||s.type==='arc')move(out.center);else if(s.type==='segment'){move(out.a);move(out.b)}else if(s.type==='angle'){move(out.origin);move(out.b);move(out.c)}else if(s.type==='point'){out.x=clamp(out.x+dx,0,W);out.y=clamp(out.y+dy,0,H)}return out;}
 function anglePreview(a,b){let theta=Math.atan2(b.y-a.y,b.x-a.x),len=Math.max(8,dist(a,b)),end={x:a.x+len*Math.cos(theta+settings.angleDirection*settings.angle*Math.PI/180),y:a.y+len*Math.sin(theta+settings.angleDirection*settings.angle*Math.PI/180)};return{type:'angle',origin:a,b,c:end,angle:settings.angle,angleDirection:settings.angleDirection,color:settings.color,width:settings.width};}
 function endSquare(a,raw,ref){let u=(ref.b.x-ref.a.x)/dist(ref.a,ref.b),v=(ref.b.y-ref.a.y)/dist(ref.a,ref.b);let px=-v,py=u;let signed=(raw.x-a.x)*px+(raw.y-a.y)*py;if(settings.snap)signed=Math.round(signed/5)*5;return{x:clamp(a.x+signed*px,0,W),y:clamp(a.y+signed*py,0,H)};}
+function renderArcDraft(pointer=null){
+ previewLayer.replaceChildren();
+ if(!arcDraft)return;
+ const center=arcDraft.center,r=settings.compassRadius*10;
+ el('circle',{cx:center.x,cy:center.y,r,fill:'none',stroke:'#1769db','stroke-width':.6,'stroke-dasharray':'2 2',opacity:.6},previewLayer);
+ el('circle',{cx:center.x,cy:center.y,r:1.4,fill:'#df9225'},previewLayer);
+ if(arcDraft.start){
+  el('line',{x1:center.x,y1:center.y,x2:arcDraft.start.x,y2:arcDraft.start.y,stroke:'#df9225','stroke-width':.75,'stroke-dasharray':'2 2'},previewLayer);
+  el('circle',{cx:arcDraft.start.x,cy:arcDraft.start.y,r:1.5,fill:'#1769db'},previewLayer);
+  if(pointer){
+   const a0=Math.atan2(arcDraft.start.y-center.y,arcDraft.start.x-center.x);
+   const a1=Math.atan2(pointer.y-center.y,pointer.x-center.x);
+   const dir=positiveSpan(a0,a1)<=Math.PI?1:0;
+   const draft={type:'arc',center,r,a0,a1,sweep:dir,color:'#1769db',width:.9};
+   if(actualArcSpan(draft)>.05&&actualArcSpan(draft)<TAU-.05)drawShape(draft,previewLayer);
+  }
+ }
+}
+function compassArcClick(p){
+ const snap=snappoint(p),r=settings.compassRadius*10;
+ if(!arcDraft){arcDraft={center:snap};renderArcDraft();status('Compas : centre choisi. Clique sur le point de départ de l’arc.');return;}
+ if(!arcDraft.start){
+  if(Math.abs(dist(snap,arcDraft.center)-r)>3.2){toast('Départ à placer à '+fmt(r)+' du centre.');return;}
+  arcDraft.start=snap;renderArcDraft();status('Compas : départ choisi. Clique sur le point d’arrivée de l’arc.');return;
+ }
+ if(Math.abs(dist(snap,arcDraft.center)-r)>3.2){toast('Arrivée à placer à '+fmt(r)+' du centre.');return;}
+ if(dist(snap,arcDraft.start)<5){toast('Les deux extrémités doivent être différentes.');return;}
+ const a0=Math.atan2(arcDraft.start.y-arcDraft.center.y,arcDraft.start.x-arcDraft.center.x);
+ const a1=Math.atan2(snap.y-arcDraft.center.y,snap.x-arcDraft.center.x);
+ const sweep=positiveSpan(a0,a1)<=Math.PI?1:0;
+ const shape={type:'arc',center:arcDraft.center,r,a0,a1,sweep,color:settings.color,width:settings.width};
+ if(Math.abs(actualArcSpan(shape)-Math.PI/2)>.18){toast('L’arc attendu est un quart de cercle : 90°.');return;}
+ arcDraft=null;clearPreview();commit(shape);status('Arc de 90° tracé, de rayon '+fmt(r)+'.');
+}
 function pointerDown(evt){if(evt.button!==0&&evt.pointerType==='mouse')return;evt.preventDefault();try{svg.setPointerCapture(evt.pointerId)}catch{}
  let p=getPoint(evt),snap=snappoint(p);
+ if(tool==='compass'&&settings.compassMode==='arc'){compassArcClick(p);return;}
  if(tool==='point'){const used=settings.pointLabel.toUpperCase();commit({type:'point',x:snap.x,y:snap.y,label:used,color:settings.color});{const letter=used.charCodeAt(0);settings.pointLabel=(used.length===1&&letter>=65&&letter<90)?String.fromCharCode(letter+1):'A';}renderInspector();status('Point '+used+' placé.');return;}
  if(tool==='eraser'){
   const special=false;
   let h=hit(p,s=>special?s.type==='circle':true);
   if(!h){status('Gomme : clique sur le contour du tracé à modifier.');return;}
+  if(h.fixed){toast('Le point G est un repère de départ : il ne peut pas être effacé.');return;}
   if(special){
    const isBottom=settings.eraserMode==='bottom';
    const keep=isBottom?{center:{x:130,y:130},r:30,a0:0,a1:Math.PI}:{center:{x:180,y:70},r:20,a0:Math.PI,a1:1.5*Math.PI};
@@ -405,7 +445,7 @@ function pointerDown(evt){if(evt.button!==0&&evt.pointerType==='mouse')return;ev
   }
   pushUndo();shapes=shapes.filter(s=>s.id!==h.id);active={tool:'eraser',pointerId:evt.pointerId};changed();status('Tracé effacé.');return;
  }
- if(tool==='select'){let h=hit(p);if(!h){status('Déplacer : sélectionne un tracé existant.');return;}active={tool:'select',pointerId:evt.pointerId,start:p,end:p,objectId:h.id,original:copy(h),moved:false};status('Déplacement en cours…');return;}
+ if(tool==='select'){let h=hit(p,s=>!s.fixed);if(!h){status('Déplacer : sélectionne un tracé existant.');return;}active={tool:'select',pointerId:evt.pointerId,start:p,end:p,objectId:h.id,original:copy(h),moved:false};status('Déplacement en cours…');return;}
  if(tool==='square'){if(pickingReference||!findReference()){
  let h=hit(p,s=>s.type==='segment',4.5);if(h){selectedReference=h.id;pickingReference=false;renderReference();renderInspector();updateSquareStatus();toast('Droite d’appui sélectionnée.');}else{toast('Sélectionne d’abord un segment tracé à la règle.');}return;}
  }
@@ -416,8 +456,8 @@ function pointerDown(evt){if(evt.button!==0&&evt.pointerType==='mouse')return;ev
  drawGuide(active);
 }
 function pointerMove(evt){let p=getPoint(evt);$('coordinates').textContent='x : '+fmt(p.x)+' · y : '+fmt(p.y);
- if(!active||evt.pointerId!==active.pointerId){if(tool==='eraser'){cursorLayer.replaceChildren();el('circle',{cx:p.x,cy:p.y,r:3.5,stroke:'#bd6740',fill:'none','stroke-width':.5,'stroke-dasharray':'1.3 1.3'},cursorLayer);}return;}
- if(active.tool==='eraser'){let h=hit(p);if(h){shapes=shapes.filter(s=>s.id!==h.id);changed();}return;}
+ if(!active||evt.pointerId!==active.pointerId){if(tool==='compass'&&settings.compassMode==='arc'&&arcDraft)renderArcDraft(snappoint(p));if(tool==='eraser'){cursorLayer.replaceChildren();el('circle',{cx:p.x,cy:p.y,r:3.5,stroke:'#bd6740',fill:'none','stroke-width':.5,'stroke-dasharray':'1.3 1.3'},cursorLayer);}return;}
+ if(active.tool==='eraser'){let h=hit(p,s=>!s.fixed);if(h){shapes=shapes.filter(s=>s.id!==h.id);changed();}return;}
  if(active.tool==='select'){let dx=p.x-active.start.x,dy=p.y-active.start.y;active.moved=Math.hypot(dx,dy)>0.4;active.ghost=translated(active.original,dx,dy);drawGuide(active);return;}
  if(active.tool==='pen'){if(dist(p,active.points[active.points.length-1])>.15)active.points.push(p);active.moved=true;active.end=p;}
  else if(active.tool==='ruler'){let b=snappoint(p);if(evt.shiftKey){let angle=Math.atan2(b.y-active.start.y,b.x-active.start.x);let snapped=Math.round(angle/(Math.PI/4))*(Math.PI/4),d=dist(active.start,b);b={x:active.start.x+d*Math.cos(snapped),y:active.start.y+d*Math.sin(snapped)};}if(settings.rulerFixed){let d=Math.max(.001,dist(active.start,b));let length=settings.rulerLength*10;b={x:clamp(active.start.x+(b.x-active.start.x)/d*length,0,W),y:clamp(active.start.y+(b.y-active.start.y)/d*length,0,H)};}active.end=b;active.moved=dist(active.start,active.end)>1;}
@@ -436,7 +476,7 @@ function pointerUp(evt){if(!active||evt.pointerId!==active.pointerId)return;cons
  else if(cur.tool==='square'){commit({type:'segment',a:cur.start,b:cur.end,mode:'square',color:settings.color,width:settings.width});status('Perpendiculaire de '+fmt(dist(cur.start,cur.end))+' tracée.');}
  else if(cur.tool==='protractor'){commit({type:'angle',origin:cur.start,b:cur.b,c:cur.c,angle:settings.angle,angleDirection:settings.angleDirection,color:settings.color,width:settings.width});status('Angle de '+settings.angle+'° construit.');}
 }
-function cancel(){if(active){active=null;clearPreview();status('Tracé interrompu.');}}
+function cancel(){if(active||arcDraft){active=null;arcDraft=null;clearPreview();status('Tracé interrompu.');}}
 svg.addEventListener('pointerdown',pointerDown);svg.addEventListener('pointermove',pointerMove);svg.addEventListener('pointerup',pointerUp);svg.addEventListener('pointercancel',cancel);svg.addEventListener('pointerleave',()=>{if(!active){cursorLayer.replaceChildren();$('coordinates').textContent='x : — · y : —';}});
 document.querySelectorAll('[data-tool]').forEach(btn=>btn.addEventListener('click',()=>selectTool(btn.dataset.tool)));
 $('undoBtn').addEventListener('click',undo);$('redoBtn').addEventListener('click',redo);
@@ -444,17 +484,17 @@ $('gridSwitch').addEventListener('change',e=>{settings.grid=e.target.checked;$('
 $('marginSwitch').addEventListener('change',e=>{settings.margin=e.target.checked;$('marginVisual').setAttribute('visibility',settings.margin?'visible':'hidden');saveLocal();});
 $('snapSwitch').addEventListener('change',e=>{settings.snap=e.target.checked;saveLocal();toast(settings.snap?'Précision de 5 mm activée.':'Placement libre activé.');});
 function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),8000);}
-function exportSvgString(){const clone=svg.cloneNode(true);['missionGuideLayer','referenceLayer','previewLayer','cursorLayer'].forEach(id=>clone.querySelector('#'+id)?.remove());clone.setAttribute('width','297mm');clone.setAttribute('height','210mm');clone.setAttribute('xmlns',NS);clone.removeAttribute('class');return new XMLSerializer().serializeToString(clone);}
-$('svgBtn').addEventListener('click',()=>{download('platine-douche-CMIS.svg',new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'}));toast('Dessin vectoriel SVG téléchargé.');});
-$('pngBtn').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'})),img=new Image();img.onload=()=>{let canvas=document.createElement('canvas');canvas.width=3508;canvas.height=2480;let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.toBlob(blob=>{if(blob)download('platine-douche-CMIS.png',blob);else toast('Export PNG impossible : utilisez le SVG.');},'image/png');URL.revokeObjectURL(url);};img.onerror=()=>{URL.revokeObjectURL(url);toast('Export PNG impossible : utilisez le SVG.');};img.src=url;});
-$('saveBtn').addEventListener('click',()=>{const pack={version:2,format:'CMIS-PLATINE-MISSION2',shapes,settings,nextId,nextPoint,mission:{step:missionStep,passed:missionPassed,answers:missionAnswers}};download('projet-platine-douche-CMIS.json',new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));toast('Projet enregistré : vous pourrez le rouvrir.');});
+function exportSvgString(){const clone=svg.cloneNode(true);['referenceLayer','previewLayer','cursorLayer'].forEach(id=>clone.querySelector('#'+id)?.remove());clone.setAttribute('width','297mm');clone.setAttribute('height','210mm');clone.setAttribute('xmlns',NS);clone.removeAttribute('class');return new XMLSerializer().serializeToString(clone);}
+$('svgBtn').addEventListener('click',()=>{download('contournement-gaine-CMIS.svg',new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'}));toast('Dessin vectoriel SVG téléchargé.');});
+$('pngBtn').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([exportSvgString()],{type:'image/svg+xml;charset=utf-8'})),img=new Image();img.onload=()=>{let canvas=document.createElement('canvas');canvas.width=3508;canvas.height=2480;let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.toBlob(blob=>{if(blob)download('contournement-gaine-CMIS.png',blob);else toast('Export PNG impossible : utilisez le SVG.');},'image/png');URL.revokeObjectURL(url);};img.onerror=()=>{URL.revokeObjectURL(url);toast('Export PNG impossible : utilisez le SVG.');};img.src=url;});
+$('saveBtn').addEventListener('click',()=>{const pack={version:2,format:'CMIS-GAINE-MISSION3',shapes,settings,nextId,nextPoint,mission:{step:missionStep,passed:missionPassed,answers:missionAnswers}};download('projet-contournement-gaine-CMIS.json',new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));toast('Projet enregistré : vous pourrez le rouvrir.');});
 $('loadBtn').addEventListener('click',()=>$('fileLoad').click());
-$('fileLoad').addEventListener('change',async e=>{let file=e.target.files?.[0];e.target.value='';if(!file)return;try{if(file.size>3000000)throw Error('Projet trop volumineux');const raw=JSON.parse(await file.text());if(raw.format!=='CMIS-PLATINE-MISSION2'||!Array.isArray(raw.shapes)||raw.shapes.length>3000)throw Error('Format de projet non reconnu');
+$('fileLoad').addEventListener('change',async e=>{let file=e.target.files?.[0];e.target.value='';if(!file)return;try{if(file.size>3000000)throw Error('Projet trop volumineux');const raw=JSON.parse(await file.text());if(raw.format!=='CMIS-GAINE-MISSION3'||!Array.isArray(raw.shapes)||raw.shapes.length>3000)throw Error('Format de projet non reconnu');
  const clean=raw.shapes.map(s=>{if(!s||!['pen','segment','circle','arc','angle','point'].includes(s.type))throw Error('Tracé non reconnu');if(typeof s.color!=='string'||!colors.includes(s.color))s.color=colors[0];s.width=clamp(Number(s.width)||.65,.2,3);const good=p=>p&&finite(p.x)&&finite(p.y)&&Math.abs(p.x)<5000&&Math.abs(p.y)<5000;
  if(s.type==='pen'){if(!Array.isArray(s.points)||s.points.length>25000||!s.points.every(good))throw Error('Points invalides');}
  if(s.type==='segment'&&(!good(s.a)||!good(s.b)))throw Error('Segment invalide');
  if((s.type==='circle'||s.type==='arc')&&(!good(s.center)||!finite(s.r)||s.r<=0||s.r>1000))throw Error('Cercle invalide');
- if(s.type==='arc'&&(!finite(s.a0)||!finite(s.a1)||positiveSpan(s.a0,s.a1)<.05))throw Error('Arc invalide');
+ if(s.type==='arc'&&(!finite(s.a0)||!finite(s.a1)||actualArcSpan(s)<.05))throw Error('Arc invalide');
  if(s.type==='angle'&&(!good(s.origin)||!good(s.b)||!good(s.c)||!finite(s.angle)))throw Error('Angle invalide');
  if(s.type==='point'&&(!finite(s.x)||!finite(s.y)))throw Error('Point invalide');return s;});
  if(shapes.length&&!confirm('Remplacer les tracés actuels par ceux du projet ouvert ?'))return;
@@ -462,7 +502,7 @@ $('fileLoad').addEventListener('change',async e=>{let file=e.target.files?.[0];e
  }catch(err){toast('Impossible d’ouvrir ce fichier de projet.');}});
 $('printBtn').addEventListener('click',()=>window.print());
 $('fullscreenBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else{await $('app').requestFullscreen();}}catch(e){toast('Plein écran indisponible sur ce navigateur.');}});
-$('clearBtn').addEventListener('click',()=>{if(!shapes.length){toast('La feuille est déjà vierge.');return;}if(!confirm('Effacer tous les tracés de cette feuille ? Cette action pourra être annulée.'))return;pushUndo();shapes=[];selectedReference=null;missionStep=0;missionPassed=[];missionAnswers={};changed();renderMission();toast('La feuille est vide.');});
+$('clearBtn').addEventListener('click',()=>{if(!shapes.length){toast('La feuille est déjà vierge.');return;}if(!confirm('Effacer tous les tracés de cette feuille ? Cette action pourra être annulée.'))return;pushUndo();shapes=[{type:'point',x:40,y:50,label:'G',fixed:true,color:'#1769db',width:.65,id:0}];selectedReference=null;missionStep=0;missionPassed=[];missionAnswers={};changed();renderMission();toast('La feuille de départ est prête.');});
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'){cancel();return;}
  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
@@ -474,183 +514,172 @@ try{const saved=localStorage.getItem(STORE);if(saved){const d=JSON.parse(saved);
 $('gridSwitch').checked=!!settings.grid;$('marginSwitch').checked=!!settings.margin;$('snapSwitch').checked=!!settings.snap;
 $('gridVisual').setAttribute('visibility',settings.grid?'visible':'hidden');$('marginVisual').setAttribute('visibility',settings.margin?'visible':'hidden');
 if(!colors.includes(settings.color))settings.color=colors[0];
+if(!shapes.some(s=>s.type==='point'&&s.fixed&&s.label==='G')){shapes.unshift({type:'point',x:40,y:50,label:'G',fixed:true,color:'#1769db',width:.65,id:0});}
 render();selectTool('pen');historyUpdate();
-/* ────────────── Mission 2: platine double de douche (vue de face) ────────────── */
+/* ─────────── Mission 3 : détour de canalisation autour d’une gaine ─────────── */
+// Toutes les coordonnées ci-dessous sont exprimées en millimètres sur l’A4 paysage.
+// Le point G est fourni comme repère de départ. Aucun autre tracé n’est ajouté automatiquement.
 const P={
- A:{x:75,y:105},B:{x:225,y:105},M:{x:150,y:105},H:{x:150,y:75},
- leftTop:{x:30,y:75},rightTop:{x:270,y:75},leftBottom:{x:30,y:135},rightBottom:{x:270,y:135},
- F1:{x:45,y:105},F2:{x:255,y:105}
+ G:{x:40,y:50},K:{x:100,y:50},L:{x:100,y:80},M:{x:40,y:80},
+ A:{x:20,y:110},B:{x:90,y:110},O1:{x:90,y:90},C:{x:110,y:90},
+ D:{x:110,y:40},O2:{x:130,y:40},E:{x:130,y:20},F:{x:240,y:20}
 };
 const MISSION=[
- {phase:'1 · Construire les repères',title:'Placer le premier centre A',body:'Avec l’outil Point, place A sur le petit repère bleu visible au centre gauche de la feuille.',tool:'point',point:'A',hint:'Le repère bleu sert uniquement à positionner le dessin sur la feuille. Clique au centre du petit cercle bleu.',fail:'Place le point nommé A sur le repère bleu. Ne trace pas encore de segment.'},
- {phase:'1 · Construire les repères',title:'Tracer un segment de 15 cm',body:'À partir de A, trace un segment horizontal de 15 cm vers la droite, à l’aide de la règle.',tool:'ruler',length:15,hint:'Commence exactement sur A, puis glisse vers la droite. La longueur de la règle peut être fixée à 15 cm.',fail:'Le segment doit partir de A, mesurer 15 cm et être horizontal.'},
- {phase:'1 · Construire les repères',title:'Nommer le deuxième centre B',body:'Avec l’outil Point, place B à l’extrémité droite du segment précédent.',tool:'point',point:'B',hint:'Accroche le point à l’extrémité du segment AB, à 15 cm de A.',fail:'Le point B doit être placé et nommé à l’extrémité droite du segment.'},
- {phase:'1 · Construire les repères',title:'Trouver le milieu M',body:'Place M au milieu du segment [AB]. Vérifie qu’il est à la même distance de A et de B.',tool:'point',point:'M',hint:'La longueur AB est de 15 cm. Son milieu est à 15 ÷ 2 = 7,5 cm de chaque extrémité.',fail:'M doit être au milieu de [AB] : à 7,5 cm de A et de B.'},
- {phase:'2 · Construire les raccordements',title:'Premier cercle autour de A',body:'Avec le compas, trace un cercle de centre A et de rayon 1 cm.',tool:'compass',radius:1,hint:'Choisis un rayon de 1 cm, puis clique exactement sur le point A.',fail:'Le cercle recherché a pour centre A et pour rayon 1 cm.'},
- {phase:'2 · Construire les raccordements',title:'Deuxième cercle autour de A',body:'Trace un second cercle de centre A et de rayon 0,6 cm. Les deux cercles doivent être concentriques.',tool:'compass',radius:.6,hint:'Concentriques signifie qu’ils ont le même centre. Garde A comme centre et change seulement le rayon.',fail:'Il manque le cercle intérieur de centre A et de rayon 0,6 cm.'},
- {phase:'2 · Construire les raccordements',title:'Reproduire le cercle autour de B',body:'Avec le compas, trace un cercle de centre B et de rayon 1 cm.',tool:'compass',radius:1,hint:'Utilise la même ouverture du compas que pour le premier grand cercle, mais place la pointe sur B.',fail:'Il manque le grand cercle de centre B et de rayon 1 cm.'},
- {phase:'2 · Construire les raccordements',title:'Compléter le raccordement B',body:'Trace un cercle de centre B et de rayon 0,6 cm.',tool:'compass',radius:.6,hint:'Tu dois maintenant voir deux couples de cercles concentriques, un autour de A et un autour de B.',fail:'Il manque le petit cercle de centre B et de rayon 0,6 cm.'},
- {phase:'3 · Dessiner la platine',title:'Placer le repère supérieur H',body:'Place un point H exactement 3 cm au-dessus de M.',tool:'point',point:'H',hint:'Les points M et H sont alignés verticalement. Mesure 3 cm vers le haut à partir de M.',fail:'H doit se trouver sur la verticale de M, 3 cm plus haut.'},
- {phase:'3 · Dessiner la platine',title:'Tracer le bord supérieur',body:'Trace un segment horizontal de 24 cm, centré sur H. Il doit dépasser de 12 cm de chaque côté de H.',tool:'ruler',length:24,hint:'Les deux extrémités se trouvent à 12 cm à gauche et à droite de H. Utilise le quadrillage pour te repérer.',fail:'Le bord supérieur doit mesurer 24 cm et avoir H pour milieu.'},
- {phase:'3 · Dessiner la platine',title:'Tracer le bord inférieur',body:'Trace un autre segment horizontal de 24 cm, exactement 6 cm sous le bord supérieur.',tool:'ruler',length:24,hint:'Les deux grands bords doivent être parallèles, de même longueur et alignés aux extrémités.',fail:'Le bord inférieur doit mesurer 24 cm, être parallèle au premier et situé 6 cm plus bas.'},
- {phase:'3 · Dessiner la platine',title:'Fermer le côté gauche',body:'À l’aide de l’équerre, trace le côté gauche de 6 cm, perpendiculaire aux grands bords.',tool:'square',length:6,hint:'Commence au coin supérieur gauche, puis trace verticalement vers le bas jusqu’au coin inférieur gauche.',fail:'Le côté gauche doit relier les deux extrémités gauches : 6 cm à la verticale.'},
- {phase:'3 · Dessiner la platine',title:'Fermer le côté droit',body:'Trace le dernier côté de 6 cm avec l’équerre pour obtenir un rectangle.',tool:'square',length:6,hint:'Relie le coin supérieur droit au coin inférieur droit. Vérifie que les quatre angles sont droits.',fail:'Il manque le côté droit de 6 cm. Vérifie que ton contour est rectangulaire.'},
- {phase:'4 · Positionner les fixations',title:'Placer le centre F1',body:'Sur l’horizontale passant par M, place F1 à 1,5 cm du bord gauche de la platine.',tool:'point',point:'F1',hint:'Pars du bord gauche et avance de 1,5 cm vers l’intérieur du rectangle, à la même hauteur que A, M et B.',fail:'F1 doit se trouver à 1,5 cm du bord gauche, sur l’axe horizontal du rectangle.'},
- {phase:'4 · Positionner les fixations',title:'Placer le centre F2',body:'Place F2 à 1,5 cm du bord droit, sur le même axe horizontal que F1.',tool:'point',point:'F2',hint:'Mesure 1,5 cm vers la gauche depuis le bord droit. F1 et F2 doivent avoir la même hauteur.',fail:'F2 doit être à 1,5 cm du bord droit et sur la même horizontale que F1.'},
- {phase:'4 · Positionner les fixations',title:'Tracer le premier trou',body:'Avec le compas, trace le trou de fixation de centre F1 et de rayon 0,25 cm.',tool:'compass',radius:.25,hint:'0,25 cm = 2,5 mm. Règle le rayon du compas sur 0,25 cm, puis clique sur F1.',fail:'Le trou gauche doit être centré sur F1, avec un rayon de 0,25 cm.'},
- {phase:'4 · Positionner les fixations',title:'Tracer le second trou',body:'Reproduis le même trou de fixation autour de F2.',tool:'compass',radius:.25,hint:'Le deuxième trou doit avoir exactement le même diamètre que le premier.',fail:'Le trou droit doit être centré sur F2 et avoir un rayon de 0,25 cm.'},
- {phase:'5 · Contrôler les dimensions',title:'Vérifier l’entraxe des raccordements',body:'La distance entre les centres A et B est de 15 cm. Quelle est cette distance en millimètres ?',answerType:'number',unit:'mm',hint:'1 cm = 10 mm. Il faut multiplier la valeur en centimètres par 10.',fail:'Convertis bien 15 cm en millimètres, sans confondre avec les rayons.'},
- {phase:'5 · Contrôler les dimensions',title:'Calculer le diamètre extérieur',body:'Chaque grand cercle a un rayon de 1 cm. Quel est son diamètre en millimètres ?',answerType:'number',unit:'mm',hint:'Un diamètre est égal à deux rayons. Convertis ensuite les centimètres en millimètres.',fail:'Pense à doubler le rayon avant de convertir le diamètre en millimètres.'},
- {phase:'5 · Contrôler les dimensions',title:'Contrôler les trous de fixation',body:'Calcule la distance entre les centres F1 et F2. Donne ta réponse en millimètres.',answerType:'number',unit:'mm',hint:'La platine mesure 24 cm. Il faut retirer 1,5 cm de chaque côté : 24 − 1,5 − 1,5. Convertis ensuite en millimètres.',fail:'Soustrais les deux retraits de 1,5 cm à la longueur de 24 cm, puis convertis.'}
+ {phase:'1 · Construire la gaine',title:'Tracer la largeur de la gaine',body:'À partir du point G déjà placé, trace un segment horizontal de 6 cm vers la droite.',tool:'ruler',length:6,hint:'Avec la règle, pars de G et dirige-toi vers la droite. Un segment horizontal conserve la même hauteur.',fail:'Le premier côté doit partir de G, mesurer 6 cm et être horizontal.'},
+ {phase:'1 · Construire la gaine',title:'Construire un angle droit',body:'À l’extrémité droite, trace un segment de 3 cm verticalement vers le bas, avec l’équerre.',tool:'square',length:3,hint:'Sélectionne le bord supérieur comme droite d’appui de l’équerre, puis trace une perpendiculaire de 3 cm.',fail:'Le côté droit doit partir du coin supérieur droit, être vertical et mesurer 3 cm.'},
+ {phase:'1 · Construire la gaine',title:'Tracer le troisième côté',body:'Trace un segment horizontal de 6 cm vers la gauche, à partir du bas du côté droit.',tool:'ruler',length:6,hint:'Le nouveau côté doit être parallèle au premier et avoir la même longueur : 6 cm.',fail:'Le côté inférieur doit mesurer 6 cm et rejoindre la verticale du point G.'},
+ {phase:'1 · Construire la gaine',title:'Fermer le rectangle',body:'Relie le dernier point à G par un segment vertical de 3 cm.',tool:'square',length:3,hint:'Pour fermer un rectangle, le dernier côté doit être perpendiculaire au bas et parallèle au côté droit.',fail:'Il manque un côté vertical de 3 cm entre le coin inférieur gauche et G.'},
+ {phase:'1 · Construire la gaine',title:'Calculer le périmètre de la gaine',body:'Le rectangle mesure 6 cm sur 3 cm. Choisis la formule du périmètre, puis calcule sa valeur.',answerType:'number',unit:'cm',formulas:[['rect','P = 2 × (L + l)'],['area','A = L × l'],['one','P = L + l']],hint:'Pour faire le tour du rectangle, on additionne les quatre côtés : 6 + 3 + 6 + 3.',fail:'Vérifie la formule : le périmètre mesure tout le contour, et non l’aire du rectangle.'},
+ {phase:'2 · Préparer le trajet',title:'Placer le point de départ A',body:'Place le point A à 2 cm à gauche et 6 cm en dessous du point G.',tool:'point',point:'A',hint:'Pars du point G déjà visible. Déplace-toi horizontalement de 2 cm vers la gauche, puis verticalement de 6 cm vers le bas.',fail:'Le point A doit être à 2 cm à gauche et 6 cm en dessous de G.'},
+ {phase:'2 · Préparer le trajet',title:'Tracer la première partie droite',body:'À partir de A, trace le segment horizontal AB de 7 cm vers la droite.',tool:'ruler',length:7,hint:'La règle doit partir exactement du point A. L’extrémité droite du segment sera appelée B.',fail:'AB doit partir de A, être horizontal vers la droite et mesurer 7 cm.'},
+ {phase:'2 · Préparer le trajet',title:'Placer le centre O₁ du coude',body:'Place O₁ exactement 2 cm au-dessus de l’extrémité B.',tool:'point',point:'O1',hint:'Le centre O₁ se trouve sur une verticale passant par B, 2 cm plus haut.',fail:'O₁ doit être placé et nommé 2 cm au-dessus de B.'},
+ {phase:'2 · Préparer le trajet',title:'Placer la fin du premier coude',body:'Place le point C à 2 cm à droite du centre O₁.',tool:'point',point:'C',hint:'Les points O₁ et C sont sur une même horizontale, séparés de 2 cm.',fail:'C doit être à 2 cm à droite de O₁.'},
+ {phase:'2 · Préparer le trajet',title:'Tracer le premier quart de cercle',body:'Avec le compas, construis un arc de centre O₁ et de rayon 2 cm, reliant B à C.',tool:'compass',radius:2,compassMode:'arc',hint:'Clique successivement sur le centre O₁, le point de départ B, puis le point d’arrivée C. L’arc doit représenter 90°.',fail:'Trace un quart de cercle de rayon 2 cm entre B et C, sans tracer le cercle entier.'},
+ {phase:'3 · Construire le second coude',title:'Tracer la montée de la canalisation',body:'À partir de C, trace un segment vertical CD de 5 cm vers le haut.',tool:'square',length:5,hint:'Utilise un segment horizontal existant comme droite d’appui pour tracer à 90°. Le point D est 5 cm au-dessus de C.',fail:'CD doit partir de C et monter verticalement sur 5 cm.'},
+ {phase:'3 · Construire le second coude',title:'Placer le centre O₂',body:'Place O₂ à 2 cm à droite de l’extrémité D.',tool:'point',point:'O2',hint:'Le deuxième centre se trouve sur la même horizontale que D, 2 cm à droite.',fail:'O₂ doit être à 2 cm à droite de D.'},
+ {phase:'3 · Construire le second coude',title:'Placer le point E',body:'Place E à 2 cm au-dessus du centre O₂.',tool:'point',point:'E',hint:'O₂ et E sont alignés verticalement. E est 2 cm au-dessus de O₂.',fail:'Le point E doit être à 2 cm au-dessus de O₂.'},
+ {phase:'3 · Construire le second coude',title:'Tracer le deuxième quart de cercle',body:'Avec le compas, construis un arc de centre O₂ et de rayon 2 cm, reliant D à E.',tool:'compass',radius:2,compassMode:'arc',hint:'Clique successivement sur O₂, sur D puis sur E. Tu obtiens un nouveau raccordement à 90°.',fail:'Il faut un quart de cercle de centre O₂, de rayon 2 cm, allant de D à E.'},
+ {phase:'3 · Construire le second coude',title:'Tracer la dernière partie droite',body:'À partir de E, trace le segment horizontal EF de 11 cm vers la droite.',tool:'ruler',length:11,hint:'Le dernier segment est horizontal, de même direction que AB.',fail:'Le dernier segment doit partir de E, mesurer 11 cm et aller vers la droite.'},
+ {phase:'3 · Construire le second coude',title:'Contrôler les tangences',body:'Aux quatre raccordements, quel angle forme le rayon avec la partie droite ? Saisis cet angle en degrés.',answerType:'number',unit:'°',hint:'Une tangente à un cercle est perpendiculaire au rayon au point de contact.',fail:'Vérifie la propriété : rayon et tangente forment un angle droit.'},
+ {phase:'4 · Calculer la longueur du tube',title:'Périmètre du cercle complet',body:'Pour un rayon de 2 cm, choisis la formule du périmètre d’un cercle, puis calcule le périmètre avec π ≈ 3,14.',answerType:'number',unit:'cm',formulas:[['circ','P = 2 × π × R'],['area','A = π × R²'],['dia','P = π × R² ÷ 2']],hint:'Le périmètre correspond à un tour complet du cercle. Remplace R par 2 dans ta formule.',fail:'Utilise le périmètre, pas l’aire, puis π ≈ 3,14.'},
+ {phase:'4 · Calculer la longueur du tube',title:'Longueur des deux coudes',body:'Les deux coudes forment au total un demi-cercle de rayon 2 cm. Choisis le calcul, puis donne leur longueur totale.',answerType:'number',unit:'cm',formulas:[['half','(2 × π × R) ÷ 2'],['quarter','(2 × π × R) ÷ 4'],['full','2 × π × R']],hint:'Chaque coude est un quart de cercle. Deux quarts correspondent à un demi-cercle.',fail:'Il faut la longueur des DEUX arcs : un demi-périmètre, pas un quart.'},
+ {phase:'4 · Calculer la longueur du tube',title:'Longueur totale de la canalisation',body:'Additionne les longueurs des trois parties droites et des deux arcs. Exprime le résultat en centimètres.',answerType:'number',unit:'cm',formulas:[['sum','AB + CD + EF + longueur des deux arcs'],['noarc','AB + CD + EF'],['bad','AB × CD + EF']],hint:'Les parties droites mesurent 7 cm, 5 cm et 11 cm. Ajoute aussi la longueur des deux coudes.',fail:'Tu dois additionner les trois segments et les deux coudes.'},
+ {phase:'4 · Calculer la longueur du tube',title:'La barre est-elle suffisante ?',body:'Tu disposes de 35 cm de tube. Quelle longueur restera-t-il après avoir réalisé ce trajet théorique ?',answerType:'number',unit:'cm',formulas:[['yes','Oui, la barre est suffisamment longue'],['no','Non, la barre est trop courte']],hint:'Compare la longueur calculée avec 35 cm, puis calcule la différence. On ne tient pas compte des pertes de coupe.',fail:'Compare 35 cm à la longueur du trajet et calcule la longueur restante.'}
 ];
 const near=(a,b,t=2.7)=>!!a&&!!b&&dist(a,b)<=t;
-const pAt=(label,position,t=2.8)=>shapes.some(s=>s.type==='point'&&String(s.label||'').toUpperCase()===label&&near({x:s.x,y:s.y},position,t));
-const sAt=(a,b,t=3)=>shapes.some(s=>s.type==='segment'&&((near(s.a,a,t)&&near(s.b,b,t))||(near(s.a,b,t)&&near(s.b,a,t))));
-const cAt=(center,r,t=2.7)=>shapes.some(s=>s.type==='circle'&&near(s.center,center,t)&&Math.abs(s.r-r)<1.4);
-const allGeometry=()=>pAt('A',P.A)&&pAt('B',P.B)&&pAt('M',P.M)&&pAt('H',P.H)&&pAt('F1',P.F1)&&pAt('F2',P.F2)&&sAt(P.A,P.B)&&cAt(P.A,10)&&cAt(P.A,6)&&cAt(P.B,10)&&cAt(P.B,6)&&sAt(P.leftTop,P.rightTop)&&sAt(P.leftBottom,P.rightBottom)&&sAt(P.leftTop,P.leftBottom)&&sAt(P.rightTop,P.rightBottom)&&cAt(P.F1,2.5)&&cAt(P.F2,2.5);
-function numberOk(i,target){let value=String(missionAnswers[i]??'').trim().replace(',','.').replace(/\s/g,'');if(value==='')return false;let n=Number(value);return finite(n)&&Math.abs(n-target)<.055;}
+const pAt=(label,position,t=2.7)=>shapes.some(s=>s.type==='point'&&String(s.label||'').toUpperCase()===label&&near({x:s.x,y:s.y},position,t));
+const sAt=(a,b,t=2.8)=>shapes.some(s=>s.type==='segment'&&((near(s.a,a,t)&&near(s.b,b,t))||(near(s.a,b,t)&&near(s.b,a,t))));
+function arcAt(center,start,end,r=20){
+ return shapes.some(s=>s.type==='arc'&&near(s.center,center,2.7)&&Math.abs(s.r-r)<1.5&&near(arcEnd(s,s.a0),start,3)&&near(arcEnd(s,s.a1),end,3)&&Math.abs(actualArcSpan(s)-Math.PI/2)<.13);
+}
+const rectOK=()=>sAt(P.G,P.K)&&sAt(P.K,P.L)&&sAt(P.L,P.M)&&sAt(P.M,P.G);
+const pathOK=()=>pAt('A',P.A)&&sAt(P.A,P.B)&&pAt('O1',P.O1)&&pAt('C',P.C)&&arcAt(P.O1,P.B,P.C)&&sAt(P.C,P.D)&&pAt('O2',P.O2)&&pAt('E',P.E)&&arcAt(P.O2,P.D,P.E)&&sAt(P.E,P.F);
+const allGeometry=()=>rectOK()&&pathOK();
+const choices={4:'rect',16:'circ',17:'half',18:'sum',19:'yes'};
+const answerTargets={4:18,15:90,16:12.56,17:6.28,18:29.28,19:5.72};
+function numberOk(i){const a=missionAnswers[i]||{};const raw=String(a.value||'').trim().replace(',','.').replace(/\s/g,'');if(raw==='')return false;const n=Number(raw);return finite(n)&&Math.abs(n-answerTargets[i])<.06;}
 function stepIsCorrect(i){
  switch(i){
- case 0:return pAt('A',P.A,3.8);
- case 1:return pAt('A',P.A,3.8)&&sAt(P.A,P.B);
- case 2:return sAt(P.A,P.B)&&pAt('B',P.B);
- case 3:return pAt('M',P.M)&&pAt('A',P.A)&&pAt('B',P.B);
- case 4:return cAt(P.A,10);
- case 5:return cAt(P.A,10)&&cAt(P.A,6);
- case 6:return cAt(P.B,10)&&cAt(P.A,10)&&cAt(P.A,6);
- case 7:return cAt(P.B,10)&&cAt(P.B,6);
- case 8:return pAt('H',P.H)&&pAt('M',P.M);
- case 9:return pAt('H',P.H)&&sAt(P.leftTop,P.rightTop);
- case 10:return sAt(P.leftTop,P.rightTop)&&sAt(P.leftBottom,P.rightBottom);
- case 11:return sAt(P.leftTop,P.leftBottom)&&sAt(P.leftTop,P.rightTop);
- case 12:return sAt(P.rightTop,P.rightBottom)&&sAt(P.leftTop,P.leftBottom);
- case 13:return pAt('F1',P.F1)&&sAt(P.leftTop,P.leftBottom);
- case 14:return pAt('F1',P.F1)&&pAt('F2',P.F2);
- case 15:return cAt(P.F1,2.5)&&pAt('F1',P.F1);
- case 16:return cAt(P.F2,2.5)&&cAt(P.F1,2.5)&&pAt('F2',P.F2);
- case 17:return numberOk(17,150)&&allGeometry();
- case 18:return numberOk(18,20)&&allGeometry();
- case 19:return numberOk(19,210)&&allGeometry();
+  case 0:return sAt(P.G,P.K);
+  case 1:return sAt(P.G,P.K)&&sAt(P.K,P.L);
+  case 2:return sAt(P.K,P.L)&&sAt(P.L,P.M);
+  case 3:return rectOK();
+  case 4:return rectOK()&&numberOk(i)&&missionAnswers[i]?.formula===choices[i];
+  case 5:return pAt('A',P.A)&&rectOK();
+  case 6:return pAt('A',P.A)&&sAt(P.A,P.B);
+  case 7:return sAt(P.A,P.B)&&pAt('O1',P.O1);
+  case 8:return pAt('O1',P.O1)&&pAt('C',P.C);
+  case 9:return arcAt(P.O1,P.B,P.C);
+  case 10:return arcAt(P.O1,P.B,P.C)&&sAt(P.C,P.D);
+  case 11:return sAt(P.C,P.D)&&pAt('O2',P.O2);
+  case 12:return pAt('O2',P.O2)&&pAt('E',P.E);
+  case 13:return arcAt(P.O2,P.D,P.E);
+  case 14:return arcAt(P.O2,P.D,P.E)&&sAt(P.E,P.F);
+  case 15:return allGeometry()&&numberOk(i);
+  case 16:case 17:case 18:case 19:return allGeometry()&&numberOk(i)&&missionAnswers[i]?.formula===choices[i];
+  default:return false;
  }
- return false;
 }
 function renderStarterGuide(){
  const g=$('missionGuideLayer');g.replaceChildren();
- if(missionStep!==0||pAt('A',P.A,3.8))return;
- el('circle',{cx:P.A.x,cy:P.A.y,r:4.2,fill:'#e5f1ff',stroke:'#1769db','stroke-width':.65,'stroke-dasharray':'1.6 1.1'},g);
- el('circle',{cx:P.A.x,cy:P.A.y,r:1.25,fill:'#1769db'},g);
- const t=el('text',{x:P.A.x+6,y:P.A.y-5,'font-size':3.9,fill:'#1769db','font-family':'Arial,sans-serif','font-weight':'700'},g);t.textContent='Départ';
+ if(missionStep===0){el('circle',{cx:P.G.x,cy:P.G.y,r:4,fill:'none',stroke:'#1769db','stroke-width':.5,'stroke-dasharray':'1.6 1.1'},g);
+  const t=el('text',{x:P.G.x+7,y:P.G.y-7,'font-size':4.2,fill:'#1769db','font-family':'Arial,sans-serif','font-weight':'650'},g);t.textContent='Départ G';}
+ const marks=[{step:6,p:P.B,label:'B'},{step:10,p:P.D,label:'D'},{step:14,p:P.F,label:'F'}];
+ for(const mark of marks){
+  if(missionStep>mark.step&&shapes.some(s=>s.type==='segment'&&near(s.b,mark.p,3))){
+   const t=el('text',{x:mark.p.x+3.5,y:mark.p.y-3.5,'font-size':4,fill:'#1769db','font-family':'Arial,sans-serif','font-weight':'650'},g);t.textContent=mark.label;
+  }
+ }
 }
 function prepareTool(i=missionStep){
- const s=MISSION[i];if(!s||!s.tool)return;
+ const st=MISSION[i];if(!st||!st.tool)return;
  settings.snap=true;$('snapSwitch').checked=true;
- if(s.tool==='point'){settings.pointLabel=s.point;settings.color='#1769db';}
- if(s.tool==='compass'){
-  settings.compassFixed=true;settings.compassRadius=s.radius;settings.color=(i===5||i===7)?'#5c8cb6':i>=15?'#253a57':'#1769db';settings.width=.65;
+ if(st.tool==='point'){settings.pointLabel=st.point;settings.color='#1769db';}
+ if(st.tool==='ruler'){settings.rulerFixed=true;settings.rulerLength=st.length;settings.color='#1769db';settings.width=.8;}
+ if(st.tool==='square'){
+  settings.squareFixed=true;settings.squareLength=st.length;settings.color='#1769db';settings.width=.8;
+  const refs={1:[P.G,P.K],3:[P.L,P.M],10:[P.A,P.B]};
+  const pair=refs[i];if(pair){const found=shapes.find(s=>s.type==='segment'&&((near(s.a,pair[0])&&near(s.b,pair[1]))||(near(s.a,pair[1])&&near(s.b,pair[0]))));if(found)selectedReference=found.id;}
  }
- if(s.tool==='ruler'){
-  settings.rulerFixed=true;settings.rulerLength=s.length;
-  settings.color=i===1?'#8199b8':'#1769db';settings.width=.8;
- }
- if(s.tool==='square'){
-  settings.squareFixed=true;settings.squareLength=s.length;settings.color='#1769db';settings.width=.8;
-  const top=shapes.find(t=>t.type==='segment'&&((near(t.a,P.leftTop)&&near(t.b,P.rightTop))||(near(t.a,P.rightTop)&&near(t.b,P.leftTop))));
-  if(top)selectedReference=top.id;
- }
- selectTool(s.tool);renderInspector();saveLocal();
- $('toolSettingsBox').open=true;
- toast(s.tool==='point'?'Outil Point prêt : '+s.point+'.':'Outil préparé. Réalise le tracé sur ta feuille.');
+ if(st.tool==='compass'){settings.compassMode='arc';settings.compassFixed=true;settings.compassRadius=2;settings.color='#1769db';settings.width=.85;arcDraft=null;clearPreview();}
+ selectTool(st.tool);renderInspector();saveLocal();$('toolSettingsBox').open=true;
+ if(st.tool==='compass'){toast('Compas réglé : clique sur le centre, le début, puis la fin de l’arc.');}
+ else toast(st.tool==='point'?'Outil Point prêt : '+st.point+'.':'Instrument préparé : à toi de tracer sur la feuille.');
 }
+function getAnswer(i){const a=missionAnswers[i];return a&&typeof a==='object'?a:{value:String(a||''),formula:''};}
+function setAnswer(i,field,value){missionAnswers[i]={...getAnswer(i),[field]:value};missionPassed[i]=false;
+ $('missionValidate').textContent='Vérifier ma réponse';$('missionValidate').classList.remove('done');$('missionFeedback').innerHTML='';saveLocal();}
 function renderMission(){
  const finished=missionStep>=MISSION.length;
  $('missionCount').textContent=finished?'20 / 20':(missionStep+1)+' / 20';
  $('missionFill').style.width=((finished?MISSION.length:missionStep)/MISSION.length*100)+'%';
  $('missionHint').classList.add('hidden');$('missionHintBtn').textContent='+ Afficher un indice';missionHintOpen=false;
  if(finished){
-  $('missionPhase').textContent='Mission terminée';
-  $('missionTitle').textContent='Platine construite !';
-  $('missionInstruction').textContent='Tu as réalisé une vue de face simplifiée avec des cercles concentriques, des parallèles, des perpendiculaires et deux fixations.';
-  $('missionToolRow').innerHTML='<span class="mission-tool">Entraxe : 150 mm</span><span class="mission-tool">Fixations : 210 mm</span>';
-  $('missionAnswer').innerHTML='<div class="mission-finished"><h2>✓ Les 20 consignes sont validées</h2><p>Tu peux enregistrer ton projet et exporter ta feuille en PNG ou SVG.</p><p><strong>Important :</strong> ce dessin est un modèle de géométrie pédagogique, et non un plan de pose normalisé.</p></div>';
-  $('missionHintBtn').classList.add('hidden');$('missionValidate').classList.add('hidden');$('missionFeedback').innerHTML='';
-  $('missionPrevious').disabled=false;renderStarterGuide();return;
+  $('missionPhase').textContent='Mission accomplie';$('missionTitle').textContent='La canalisation contourne la gaine !';
+  $('missionInstruction').textContent='Tu as construit un rectangle, deux arcs de 90° et trois segments droits. Tu as ensuite calculé le périmètre de la gaine et les longueurs du trajet.';
+  $('missionToolRow').innerHTML='<span class="mission-tool">Périmètre gaine : 18 cm</span><span class="mission-tool">Tube : ≈ 29,28 cm</span>';
+  $('missionAnswer').innerHTML='<div class="mission-finished"><h2>✓ 20 consignes validées</h2><p>Tu peux enregistrer ton projet et exporter ton dessin en PNG ou SVG.</p><p>Il s’agit d’un tracé mathématique simplifié sur l’axe du tube : en atelier, les rayons et pertes de coupe dépendent du matériel utilisé.</p></div>';
+  $('missionHintBtn').classList.add('hidden');$('missionValidate').classList.add('hidden');$('missionFeedback').innerHTML='';$('missionPrevious').disabled=false;renderStarterGuide();return;
  }
  $('missionHintBtn').classList.remove('hidden');$('missionValidate').classList.remove('hidden');
- const s=MISSION[missionStep];
- $('missionPhase').textContent=s.phase;
- $('missionTitle').textContent=s.title;
- $('missionInstruction').textContent=s.body;
- $('missionToolRow').innerHTML=s.tool?'<span class="mission-tool">'+htmlEsc(nameMap[s.tool])+'</span><button type="button" class="mission-prepare" id="missionPrepare">Préparer cet outil</button>':'<span class="mission-tool">Calcul et contrôle</span>';
- $('missionPrepare')?.addEventListener('click',()=>prepareTool());
- $('missionHint').textContent=s.hint;
- if(s.answerType==='number'){
-  $('missionAnswer').innerHTML='<div class="mission-answer"><label for="missionInput">Réponse en millimètres</label><input id="missionInput" type="text" inputmode="decimal" autocomplete="off" placeholder="Nombre" value="'+htmlEsc(missionAnswers[missionStep]??'')+'"><span class="unit">mm</span></div>';
-  $('missionInput').addEventListener('input',e=>{missionAnswers[missionStep]=e.target.value;missionPassed[missionStep]=false;const btn=$('missionValidate');btn.textContent='Vérifier ma réponse';btn.classList.remove('done');$('missionFeedback').innerHTML='';saveLocal();});
+ const st=MISSION[missionStep];$('missionPhase').textContent=st.phase;$('missionTitle').textContent=st.title;$('missionInstruction').textContent=st.body;
+ $('missionToolRow').innerHTML=st.tool?'<span class="mission-tool">'+htmlEsc(nameMap[st.tool])+'</span><button type="button" class="mission-prepare" id="missionPrepare">Préparer cet outil</button>':'<span class="mission-tool">Calcul et raisonnement</span>';
+ $('missionPrepare')?.addEventListener('click',()=>prepareTool());$('missionHint').textContent=st.hint;
+ if(st.answerType==='number'){
+  const a=getAnswer(missionStep);
+  let formula='';if(st.formulas){formula='<div class="mission-answer" style="display:flex;flex-direction:column;align-items:stretch;gap:7px"><label for="missionFormula">Choisir le calcul</label><select class="mission-select" id="missionFormula"><option value="">— Choisis une formule —</option>'+st.formulas.map(([id,label])=>'<option value="'+htmlEsc(id)+'" '+(a.formula===id?'selected':'')+'>'+htmlEsc(label)+'</option>').join('')+'</select></div>';}
+  $('missionAnswer').innerHTML=formula+'<div class="mission-answer"><label for="missionInput">'+(missionStep===15?'Angle mesuré':missionStep===19?'Longueur restante':'Résultat')+'</label><input id="missionInput" type="text" inputmode="decimal" autocomplete="off" placeholder="Nombre" value="'+htmlEsc(a.value)+'"><span class="unit">'+htmlEsc(st.unit)+'</span></div>';
+  $('missionInput').addEventListener('input',e=>setAnswer(missionStep,'value',e.target.value));
+  $('missionFormula')?.addEventListener('change',e=>setAnswer(missionStep,'formula',e.target.value));
  }else{$('missionAnswer').innerHTML='';}
- const already=!!missionPassed[missionStep];
- $('missionValidate').textContent=already?'Consigne suivante →':'Vérifier '+(s.answerType?'ma réponse':'mon tracé');
- $('missionValidate').classList.toggle('done',already);
- $('missionFeedback').innerHTML=already?'<div class="mission-feedback success">✓ Consigne validée, passe à la suite.</div>':'';
- $('missionPrevious').disabled=missionStep===0;
- renderStarterGuide();
+ const already=!!missionPassed[missionStep];$('missionValidate').textContent=already?'Consigne suivante →':'Vérifier '+(st.answerType?'ma réponse':'mon tracé');$('missionValidate').classList.toggle('done',already);
+ $('missionFeedback').innerHTML=already?'<div class="mission-feedback success">✓ Consigne validée. Passe à la suite.</div>':'';
+ $('missionPrevious').disabled=missionStep===0;renderStarterGuide();
 }
-function refreshMissionAfterDrawing(){
- renderStarterGuide();
- if(missionStep<MISSION.length&&missionPassed[missionStep]){
-  missionPassed[missionStep]=false;
-  $('missionValidate').classList.remove('done');
-  $('missionValidate').textContent='Vérifier '+(MISSION[missionStep].answerType?'ma réponse':'mon tracé');
-  $('missionFeedback').innerHTML='';
- }
-}
+function refreshMissionAfterDrawing(){renderStarterGuide();if(missionStep<MISSION.length&&missionPassed[missionStep]){
+ missionPassed[missionStep]=false;$('missionValidate').classList.remove('done');$('missionValidate').textContent='Vérifier '+(MISSION[missionStep].answerType?'ma réponse':'mon tracé');$('missionFeedback').innerHTML='';
+}}
 function pointDiagnostic(i){
- const lab=MISSION[i].point;
- const s=shapes.slice().reverse().find(x=>x.type==='point'&&String(x.label||'').toUpperCase()===lab);
- if(!s)return 'Le point '+lab+' n’a pas été trouvé. Vérifie le nom dans les réglages de l’outil Point.';
- const target={0:P.A,2:P.B,3:P.M,8:P.H,13:P.F1,14:P.F2}[i];
- if(!target)return MISSION[i].fail;
- let dx=target.x-s.x,dy=target.y-s.y;
- if(Math.hypot(dx,dy)<3)return MISSION[i].fail;
- let h=Math.abs(dx)>3?(dx>0?'vers la droite':'vers la gauche'):'';
- let v=Math.abs(dy)>3?(dy>0?'vers le bas':'vers le haut'):'';
- const parts=[h,v].filter(Boolean).join(' et ');
- return 'Le point '+lab+' est décalé. Déplace-le '+parts+' d’environ '+fmt(Math.hypot(dx,dy))+', ou efface-le et replace-le.';
+ const label=MISSION[i].point;const found=shapes.slice().reverse().find(s=>s.type==='point'&&String(s.label||'').toUpperCase()===label);
+ if(!found)return 'Le point '+label+' n’a pas été trouvé. Vérifie le nom dans les réglages de l’outil Point.';
+ const expected={5:P.A,7:P.O1,8:P.C,11:P.O2,12:P.E}[i];
+ if(!expected)return MISSION[i].fail;
+ const dx=expected.x-found.x,dy=expected.y-found.y;const distance=Math.hypot(dx,dy);
+ if(distance<2.7)return MISSION[i].fail;
+ const dirs=[Math.abs(dx)>2.7?(dx>0?'à droite':'à gauche'):'',Math.abs(dy)>2.7?(dy>0?'vers le bas':'vers le haut'):''].filter(Boolean).join(' et ');
+ return 'Le point '+label+' est décalé : déplace-le '+dirs+' d’environ '+fmt(distance)+', ou efface-le et recommence.';
 }
 function diagnostic(i){
- if([0,2,3,8,13,14].includes(i))return pointDiagnostic(i);
- const s=MISSION[i];
- if(s.tool==='compass'){
-  const center=i===4||i===5?P.A:i===6||i===7?P.B:i===15?P.F1:P.F2;
-  const exact=shapes.filter(x=>x.type==='circle'&&near(x.center,center,4));
-  if(exact.length){const closest=exact.slice().sort((a,b)=>Math.abs(a.r-s.radius*10)-Math.abs(b.r-s.radius*10))[0];return 'Cercle repéré près du bon centre, mais son rayon est de '+fmt(closest.r)+' au lieu de '+String(s.radius).replace('.',',')+' cm.';}
+ const st=MISSION[i];if(st.tool==='point')return pointDiagnostic(i);
+ if(st.tool==='compass')return 'L’arc doit former exactement un quart de cercle de rayon 2 cm. Vérifie le centre et les points de départ et d’arrivée.';
+ if(st.answerType==='number'){
+  const a=getAnswer(i);
+  if(st.formulas&&!a.formula)return 'Choisis d’abord la formule adaptée au problème.';
+  if(st.formulas&&a.formula!==choices[i])return 'La formule choisie ne correspond pas à la grandeur recherchée.';
+  if(!String(a.value||'').trim())return 'Il manque le résultat numérique.';
+  if(!allGeometry()&&i>=15)return 'Ton tracé n’est pas encore complet ou certains raccordements sont incorrects.';
  }
- return s.fail;
+ return st.fail;
 }
 function validateMission(){
  if(missionStep>=MISSION.length)return;
- const s=MISSION[missionStep];
+ const st=MISSION[missionStep];
  if(missionPassed[missionStep]){
-  if(!stepIsCorrect(missionStep)){
-   missionPassed[missionStep]=false;renderMission();$('missionFeedback').innerHTML='<div class="mission-feedback">Le dessin a changé. Vérifie à nouveau la consigne.</div>';return;
-  }
+  if(!stepIsCorrect(missionStep)){missionPassed[missionStep]=false;renderMission();$('missionFeedback').innerHTML='<div class="mission-feedback">La construction a changé. Vérifie à nouveau la consigne.</div>';return;}
   missionStep++;saveLocal();renderMission();return;
  }
  if(stepIsCorrect(missionStep)){
-  missionPassed[missionStep]=true;saveLocal();
-  $('missionValidate').classList.add('done');$('missionValidate').textContent='Consigne suivante →';
-  $('missionFeedback').innerHTML='<div class="mission-feedback success">✓ Construction correcte. Tu peux passer à la consigne suivante.</div>';
- }else{
-  $('missionFeedback').innerHTML='<div class="mission-feedback">'+htmlEsc(diagnostic(missionStep))+'</div>';
- }
+  missionPassed[missionStep]=true;saveLocal();$('missionValidate').classList.add('done');$('missionValidate').textContent='Consigne suivante →';
+  $('missionFeedback').innerHTML='<div class="mission-feedback success">✓ Correct. Tu peux passer à la consigne suivante.</div>';
+ }else{$('missionFeedback').innerHTML='<div class="mission-feedback">'+htmlEsc(diagnostic(missionStep))+'</div>';}
 }
 $('missionValidate').addEventListener('click',validateMission);
 $('missionHintBtn').addEventListener('click',()=>{missionHintOpen=!missionHintOpen;$('missionHint').classList.toggle('hidden',!missionHintOpen);$('missionHintBtn').textContent=missionHintOpen?'− Masquer l’indice':'+ Afficher un indice';});
 $('missionPrevious').addEventListener('click',()=>{if(missionStep>0){missionStep--;saveLocal();renderMission();}});
 $('missionRestart').addEventListener('click',()=>{
- if(!confirm('Recommencer la mission ? Tous les tracés et les validations seront effacés.'))return;
- pushUndo();shapes=[];selectedReference=null;missionStep=0;missionPassed=[];missionAnswers={};
- settings.grid=true;$('gridSwitch').checked=true;$('gridVisual').setAttribute('visibility','visible');
- changed();renderMission();toast('Nouvelle mission prête.');
+ if(!confirm('Recommencer ? Tous les tracés de la mission et les validations seront effacés.'))return;
+ pushUndo();shapes=[{type:'point',x:40,y:50,label:'G',fixed:true,color:'#1769db',width:.65,id:0}];selectedReference=null;arcDraft=null;missionStep=0;missionPassed=[];missionAnswers={};
+ settings.grid=true;$('gridSwitch').checked=true;$('gridVisual').setAttribute('visibility','visible');changed();renderMission();toast('Nouvelle mission prête.');
 });
 renderMission();
 
